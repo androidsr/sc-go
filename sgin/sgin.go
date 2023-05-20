@@ -154,7 +154,4 @@ func (m *SGin) Cors() {
 func (m *SGin) WebToken(config *syaml.WebTokenInfo) {
 	sjwt.New(config)
 	m.Use(sjwt.JWTAuthMiddleware())
-	m.Use(func(c *gin.Context) {
-		sjwt.RefreshToken(c)
-	})
 }

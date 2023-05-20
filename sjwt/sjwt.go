@@ -54,7 +54,6 @@ func ParseToken(tokenString string) (jwt.MapClaims, error) {
 func JWTAuthMiddleware() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		url := c.Request.URL.Path
-		fmt.Println(url)
 		for _, v := range config.WhiteList {
 			fmt.Println(v, url, v == url)
 			if v == url {
@@ -62,6 +61,7 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 				return
 			}
 		}
+		fmt.Println("...........")
 		var tokenStr string
 		switch config.StoreType {
 		case 1:
@@ -91,60 +91,27 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 			c.Abort()
 			return
 		}
-
+		// 检查JWT令牌是否快要过期
+		expiresAt, ok := mc["expiresAt"].(int64)
+		if !ok {
+			c.JSON(http.StatusUnauthorized, model.NewFail(401, "无效的Token"))
+			c.Abort()
+		}
+		if (expiresAt-time.Now().Unix())/60 < int64(config.Expire)*60/3 {
+			// 如果快要过期，则刷新JWT令牌
+			tokenStr, _ := GenerateToken(mc)
+			switch config.StoreType {
+			case 1:
+				c.Writer.Header().Set(config.TokenName, tokenStr)
+			case 2:
+				c.SetCookie(config.TokenName, tokenStr, config.Expire*60, "/", "localhost", false, true)
+			case 3:
+				return
+			}
+		}
 		for k, v := range mc {
 			c.Set(k, v)
 		}
 		c.Next()
 	}
-}
-
-func RefreshToken(c *gin.Context) string {
-	var tokenStr string
-	switch config.StoreType {
-	case 1:
-		tokenStr = c.Request.Header.Get(config.TokenName)
-	case 2:
-		tokenStr, _ = c.Cookie(config.TokenName)
-	case 3:
-		tokenStr = c.Param(config.TokenName)
-	}
-
-	if tokenStr == "" {
-		c.JSON(http.StatusUnauthorized, model.NewFail(401, "请先登录后重试！"))
-		c.Abort()
-		return ""
-	}
-	var parts = make([]string, 2)
-	if strings.HasPrefix(tokenStr, "Bearer ") {
-		parts = strings.SplitN(tokenStr, " ", 2)
-	} else {
-		parts[1] = tokenStr
-	}
-
-	claims, err := ParseToken(parts[1])
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, model.NewFail(401, "无效的Token"))
-		c.Abort()
-		return ""
-	}
-	// 检查JWT令牌是否快要过期
-	expiresAt, ok := claims["expiresAt"].(int64)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, model.NewFail(401, "无效的Token"))
-		c.Abort()
-	}
-	if (expiresAt-time.Now().Unix())/60 < int64(config.Expire)*60/3 {
-		// 如果快要过期，则刷新JWT令牌
-		tokenStr, _ := GenerateToken(claims)
-		switch config.StoreType {
-		case 1:
-			c.Writer.Header().Set(config.TokenName, tokenStr)
-		case 2:
-			c.SetCookie(config.TokenName, tokenStr, config.Expire*60, "/", "localhost", false, true)
-		case 3:
-			return tokenStr
-		}
-	}
-	return tokenStr
 }
