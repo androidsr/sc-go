@@ -65,27 +65,32 @@ func FormatDateTimeStringNumber(t time.Time) string {
 }
 
 func ParseDate(ymd_ string) time.Time {
-	t, _ := time.Parse("2006-01-02", ymd_)
+	loc, _ := time.LoadLocation("Local")
+	t, _ := time.ParseInLocation("2006-01-02", ymd_, loc)
 	return t
 }
 
 func ParseTime(hms_ string) time.Time {
-	t, _ := time.Parse("15:04:05", hms_)
+	loc, _ := time.LoadLocation("Local")
+	t, _ := time.ParseInLocation("15:04:05", hms_, loc)
 	return t
 }
 
 func ParseDateTime(ymd_ string) time.Time {
-	t, _ := time.Parse("2006-01-02 15:04:05", ymd_)
-	return t
+	loc, _ := time.LoadLocation("Local")
+	theTime, _ := time.ParseInLocation("2006-01-02 15:04:05", ymd_, loc)
+	return theTime
 }
 
 func ParseDateNumber(ymd string) time.Time {
-	t, _ := time.Parse("20060102", ymd)
+	loc, _ := time.LoadLocation("Local")
+	t, _ := time.ParseInLocation("20060102", ymd, loc)
 	return t
 }
 
 func ParseTimeNumber(hms string) time.Time {
-	t, _ := time.Parse("150405", hms)
+	loc, _ := time.LoadLocation("Local")
+	t, _ := time.ParseInLocation("150405", hms, loc)
 	return t
 }
 
