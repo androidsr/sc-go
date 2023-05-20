@@ -1,10 +1,9 @@
-module sc-go
+module github.com/androidsr/sc-go
 
 go 1.20
 
 require (
 	github.com/Shopify/sarama v1.38.1
-	github.com/androidsr/sc-go v0.0.0-20230520063247-6ce91fc7594f
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-resty/resty/v2 v2.7.0

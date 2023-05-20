@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/androidsr/sc-go/model"
-	"github.com/androidsr/sc-go/paas"
+	"github.com/androidsr/sc-go/sc"
 	"github.com/androidsr/sc-go/syaml"
 	"github.com/jmoiron/sqlx"
 )
@@ -169,7 +169,7 @@ func updateSQL(tableModel *ModelInfo, condition ...string) string {
 	setValues := make([]interface{}, 0)
 	condValues := make([]interface{}, 0)
 	for i, tag := range tableModel.tags {
-		if paas.Contains(condition, tag.Column) {
+		if sc.Contains(condition, tag.Column) {
 			conds.WriteString(fmt.Sprintf(" and %s = ?", tag.Column))
 			condValues = append(condValues, tableModel.values[i])
 		} else {
@@ -216,7 +216,7 @@ func (m *Sorm) SelectPage(data interface{}, sql string, page model.PageInfo, que
 	sql = fmt.Sprintf("%s %s", sql, condi)
 
 	result := new(model.PageResult)
-	if paas.IsNotEmpty(page) {
+	if sc.IsNotEmpty(page) {
 		if page.Current == 0 {
 			page.Current = 1
 		}
@@ -260,11 +260,11 @@ func (m *Sorm) SelectListPage(data interface{}, sql string, page model.PageInfo,
 	values := make([]interface{}, 0)
 	for i := 0; i < len(args)/2; i++ {
 		value := args[i+1]
-		if paas.IsEmpty(value) {
+		if sc.IsEmpty(value) {
 			continue
 		}
 		condition := args[i].(string)
-		if paas.IsArray(value) {
+		if sc.IsArray(value) {
 			condition = strings.ReplaceAll(condition, "?", Placeholders(len(value.([]interface{}))))
 		}
 		condi.WriteString(condition)
@@ -274,7 +274,7 @@ func (m *Sorm) SelectListPage(data interface{}, sql string, page model.PageInfo,
 	sql = fmt.Sprintf("%s %s", sql, condi.String())
 
 	result := new(model.PageResult)
-	if paas.IsNotEmpty(page) {
+	if sc.IsNotEmpty(page) {
 		if page.Current == 0 {
 			page.Current = 1
 		}
@@ -338,11 +338,11 @@ func (m *Sorm) FindList(data interface{}, args ...interface{}) error {
 	values := make([]interface{}, 0)
 	for i := 0; i < len(args)/2; i++ {
 		value := args[i+1]
-		if paas.IsEmpty(value) {
+		if sc.IsEmpty(value) {
 			continue
 		}
 		condition := args[i].(string)
-		if paas.IsArray(value) {
+		if sc.IsArray(value) {
 			condition = strings.ReplaceAll(condition, "?", Placeholders(len(value.([]interface{}))))
 		}
 		condi.WriteString(condition)
@@ -368,11 +368,11 @@ func (m *Sorm) FindOne(data interface{}, args ...interface{}) error {
 
 	for i := 0; i < len(args)/2; i++ {
 		value := args[i+1]
-		if paas.IsEmpty(value) {
+		if sc.IsEmpty(value) {
 			continue
 		}
 		condition := args[i].(string)
-		if paas.IsArray(value) {
+		if sc.IsArray(value) {
 			condition = strings.ReplaceAll(condition, "?", Placeholders(len(value.([]interface{}))))
 		}
 		condi.WriteString(condition)
