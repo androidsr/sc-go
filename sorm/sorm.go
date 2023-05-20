@@ -80,7 +80,7 @@ func (m *Sorm) GetCount(obj interface{}) int {
 	var count int
 	err := m.DB.Get(&count, sql, tableModel.values...)
 	if err != nil {
-		log.Fatalf("SQL error:%s\n %v", sql, err)
+		log.Printf("SQL error:%s\n %v", sql, err)
 		return 0
 	}
 	return count
@@ -93,7 +93,7 @@ func (m *Sorm) SelectCount(sql string, values ...interface{}) int {
 	printSQL(sql, values)
 	err := m.DB.Get(&count, sql, values...)
 	if err != nil {
-		log.Fatalf("SQL error:%s\n %v", sql, err)
+		log.Printf("SQL error:%s\n %v", sql, err)
 		return 0
 	}
 	return count
@@ -247,7 +247,7 @@ func (m *Sorm) SelectPage(data interface{}, sql string, page model.PageInfo, que
 	printSQL(sql, tableModel.values)
 	err := m.DB.Select(data, sql, tableModel.values...)
 	if err != nil {
-		log.Fatalf("sql error: %v\n", err)
+		log.Printf("sql error: %v\n", err)
 		return nil
 	}
 	result.Rows = data
@@ -305,7 +305,7 @@ func (m *Sorm) SelectListPage(data interface{}, sql string, page model.PageInfo,
 	printSQL(sql, args)
 	err := m.DB.Select(data, sql, args...)
 	if err != nil {
-		log.Fatalf("sql error: %v\n", err)
+		log.Printf("sql error: %v\n", err)
 		return nil
 	}
 	result.Rows = data
@@ -326,7 +326,7 @@ func (m *Sorm) SelectList(data interface{}, query interface{}, columns ...string
 	sql += condi
 	err := m.DB.Select(data, sql, tableModel.values...)
 	if err != nil {
-		log.Fatalf("sql error:%v\n", err)
+		log.Printf("sql error:%v\n", err)
 		return err
 	}
 	return nil
@@ -355,7 +355,7 @@ func (m *Sorm) FindList(data interface{}, args ...interface{}) error {
 	sql += condi.String()
 	err := m.DB.Select(data, sql, values...)
 	if err != nil {
-		log.Fatalf("sql error:%v\n", err)
+		log.Printf("sql error:%v\n", err)
 		return err
 	}
 	return nil
@@ -385,7 +385,7 @@ func (m *Sorm) FindOne(data interface{}, args ...interface{}) error {
 	sql += condi.String()
 	err := m.DB.Get(data, sql, values...)
 	if err != nil {
-		log.Fatalf("sql error:%v\n", err)
+		log.Printf("sql error:%v\n", err)
 		return err
 	}
 	return nil
@@ -405,7 +405,7 @@ func (m *Sorm) SelectListTx(tx *sqlx.Tx, data interface{}, query interface{}, co
 	sql += condi
 	err := tx.Select(data, sql, tableModel.values...)
 	if err != nil {
-		log.Fatalf("sql error:%v\n", err)
+		log.Printf("sql error:%v\n", err)
 		return err
 	}
 	return nil
@@ -426,7 +426,7 @@ func (m *Sorm) SelectOne(data interface{}, query interface{}, columns ...string)
 	printSQL(sql, tableModel.values)
 	err := m.DB.Get(data, sql, tableModel.values...)
 	if err != nil {
-		log.Fatalf("sql error:%v\n", err)
+		log.Printf("sql error:%v\n", err)
 		return err
 	}
 	return nil
@@ -447,7 +447,7 @@ func (m *Sorm) GetOne(data interface{}, columns ...string) error {
 	printSQL(sql, tableModel.values)
 	err := m.DB.Get(data, sql, tableModel.values...)
 	if err != nil {
-		log.Fatalf("sql error:%v\n", err)
+		log.Printf("sql error:%v\n", err)
 		return err
 	}
 	return nil
@@ -468,7 +468,7 @@ func (m *Sorm) SelectOneTx(tx *sqlx.Tx, data interface{}, query interface{}, col
 	printSQL(sql, tableModel.values)
 	err := tx.Get(data, sql, tableModel.values...)
 	if err != nil {
-		log.Fatalf("sql error:%v\n", err)
+		log.Printf("sql error:%v\n", err)
 		return err
 	}
 	return nil
@@ -483,12 +483,12 @@ func printSQL(sql string, values []interface{}) {
 // 获取SQL执行影响行数
 func getAffectedRow(ret sql.Result, err error) int64 {
 	if err != nil {
-		log.Fatalf("SQL ERROR: %v", err)
+		log.Printf("SQL ERROR: %v", err)
 		return 0
 	}
 	n, err := ret.RowsAffected()
 	if err != nil {
-		log.Fatalf("SQL ERROR: %v", err)
+		log.Printf("SQL ERROR: %v", err)
 		return 0
 	}
 	return n

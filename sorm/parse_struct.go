@@ -159,20 +159,16 @@ func setKeyword(tableModel *ModelInfo) string {
 
 		case Between:
 			v, ok := tableModel.values[i].(BetweenInfo)
-			if !ok {
-
+			if ok {
+				condition.WriteString(fmt.Sprintf(" and %s between ? and ? ", keyword.Column))
+				newValue = append(newValue, v.Left, v.Right)
 			}
-			condition.WriteString(fmt.Sprintf(" and %s between ? and ? ", keyword.Column))
-			newValue = append(newValue, v.Left, v.Right)
-
 		case NotBetween:
 			v, ok := tableModel.values[i].(BetweenInfo)
-			if !ok {
-
+			if ok {
+				condition.WriteString(fmt.Sprintf(" and %s not between ? and ? ", keyword.Column))
+				newValue = append(newValue, v.Left, v.Right)
 			}
-			condition.WriteString(fmt.Sprintf(" and %s not between ? and ? ", keyword.Column))
-			newValue = append(newValue, v.Left, v.Right)
-
 		case Like:
 			condition.WriteString(fmt.Sprintf(" and %s like CONCAT('%s', ?, '%s') ", keyword.Column, "%", "%"))
 			newValue = append(newValue, tableModel.values[i])

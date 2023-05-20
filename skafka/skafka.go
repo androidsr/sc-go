@@ -119,7 +119,7 @@ func (m *Consumer) Listener(ctx context.Context, groupId string, topic []string)
 
 	go func() {
 		for err := range m.Errors() {
-			log.Fatalf("kafka %s consume err:%v", groupId, err)
+			log.Printf("kafka %s consume err:%v", groupId, err)
 		}
 	}()
 	go func() {
@@ -139,7 +139,7 @@ func (m *Consumer) Listener(ctx context.Context, groupId string, topic []string)
 				case sarama.ErrOutOfBrokers:
 					log.Fatal("kafka 崩溃了~")
 				default:
-					log.Fatalf("kafka exception: %s", err.Error())
+					log.Printf("kafka exception: %s", err.Error())
 				}
 				time.Sleep(1 * time.Second)
 			}
