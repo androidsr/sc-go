@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"github.com/androidsr/sc-go/sc"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -18,6 +19,9 @@ func New(config *syaml.ProxyInfo) {
 	director := func(req *http.Request) {
 		addrConfig := getProxyTarget(req.URL.Path, config.Server)
 		target, _ := url.Parse(addrConfig.Addr)
+		if sc.IsNotEmpty(target.Scheme) {
+			target.Scheme = "http"
+		}
 		req.URL.Scheme = target.Scheme
 		req.URL.Host = target.Host
 		req.URL.Path = strings.Replace(req.URL.Path, addrConfig.Name, "", 1)
@@ -26,17 +30,12 @@ func New(config *syaml.ProxyInfo) {
 	proxy := &httputil.ReverseProxy{
 		Director: director,
 	}
-	// 创建HTTP服务器
-	server := http.Server{
-		Addr:    ":" + config.Port, // 反向代理服务器监听的地址和端口
-		Handler: proxy,             // 使用反向代理处理请求
-	}
 	// 启动服务器
 	var err error
 	if config.Cert == "" || config.Key == "" {
-		err = server.ListenAndServe()
+		err = http.ListenAndServe(":"+config.Port, proxy)
 	} else {
-		err = server.ListenAndServeTLS(config.Cert, config.Key)
+		err = http.ListenAndServeTLS(":"+config.Port, config.Cert, config.Key, proxy)
 	}
 	if err != nil {
 		log.Fatal(err)
