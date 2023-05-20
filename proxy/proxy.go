@@ -26,12 +26,17 @@ func New(config *syaml.ProxyInfo) {
 	proxy := &httputil.ReverseProxy{
 		Director: director,
 	}
+	// 创建HTTP服务器
+	server := http.Server{
+		Addr:    ":" + config.Port, // 反向代理服务器监听的地址和端口
+		Handler: proxy,             // 使用反向代理处理请求
+	}
 	// 启动服务器
 	var err error
 	if config.Cert == "" || config.Key == "" {
-		err = http.ListenAndServe(":"+config.Port, proxy)
+		err = server.ListenAndServe()
 	} else {
-		err = http.ListenAndServeTLS(":"+config.Port, config.Cert, config.Key, proxy)
+		err = server.ListenAndServeTLS(config.Cert, config.Key)
 	}
 	if err != nil {
 		log.Fatal(err)
