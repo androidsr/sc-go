@@ -6,7 +6,7 @@ import (
 	"net/http/httputil"
 	"strings"
 
-	"github.com/androidsr/paas-go/syaml"
+	"github.com/androidsr/sc-go/syaml"
 )
 
 var (

@@ -18,7 +18,7 @@ go get github.com/androidsr/sc-go
 
 ```go
 // 加载本地配置文件
-configs, err := syaml.LoadFile[syaml.PaasRoot]("paas.yaml")
+configs, err := syaml.LoadFile[syaml.PaasRoot]("sc-go.yaml")
 // 自定义数据加载文件，如：nacos配置获取到的数据
 configs, err := syaml.Load[syaml.PaasRoot]([]byte(""))
 ```
@@ -35,9 +35,9 @@ configs, err := syaml.Load[syaml.PaasRoot]([]byte(""))
 import (
     "fmt"
 
-    _ "github.com/androidsr/paas-go/controller"
-    "github.com/androidsr/paas-go/sgin"
-    "github.com/androidsr/paas-go/syaml"
+    _ "github.com/androidsr/sc-go/controller"
+    "github.com/androidsr/sc-go/sgin"
+    "github.com/androidsr/sc-go/syaml"
     "github.com/gin-gonic/gin"
 )
 
@@ -61,7 +61,7 @@ router.RunServer()
 import (
     "fmt"
 
-    "github.com/androidsr/paas-go/sgin"
+    "github.com/androidsr/sc-go/sgin"
     "github.com/gin-gonic/gin"
 )
 
@@ -190,7 +190,7 @@ ConfigClient.GetDefaultConfig(func(namespace, group, dataId, data string) {
 
 ```go
 //获取一个可用的服务
-instance, err := NamingClient.GetInstance("paas-go")
+instance, err := NamingClient.GetInstance("sc-go")
 if err != nil {
     panic(err)
 }

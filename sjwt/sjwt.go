@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/androidsr/paas-go/model"
-	"github.com/androidsr/paas-go/syaml"
+	"github.com/androidsr/sc-go/model"
+	"github.com/androidsr/sc-go/syaml"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 )

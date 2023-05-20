@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/androidsr/paas-go/syaml"
+	"github.com/androidsr/sc-go/syaml"
 )
 
 func Test_GetConfig(t *testing.T) {
@@ -15,7 +15,7 @@ func Test_GetConfig(t *testing.T) {
 		fmt.Println(namespace, group, dataId, data)
 	}))
 	fmt.Println("-------------------")
-	instance, err := NamingClient.GetInstance("paas-go")
+	instance, err := NamingClient.GetInstance("sc-go")
 	if err != nil {
 		panic(err)
 	}

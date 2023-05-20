@@ -1,4 +1,4 @@
-paas:
+sc:
 ##########gin配置项##########
   gin:
     scan:
@@ -27,7 +27,7 @@ paas:
 ##########yaml配置项##########
   yaml:
     mode: local  ##local / nacos
-    file: paas.yaml
+    file: sc-go.yaml
 
 ##########nacos配置项##########
   nacos:
@@ -35,7 +35,7 @@ paas:
     ipAddr: 127.0.0.1
     port: 8848
     config:
-      dataId: paas-go.yaml
+      dataId: sc-go.yaml
       namespace: aaa199a4-48a7-4c49-9cdf-5b627ed25fb6
       group: DEFAULT_GROUP
       sharedConfigs[0]:
@@ -43,7 +43,7 @@ paas:
     discovery:
       namespace: aaa199a4-48a7-4c49-9cdf-5b627ed25fb6
       group: DEFAULT_GROUP
-      serviceName: paas-go
+      serviceName: sc-go
       port: 8080
       ip: 
       prefix:

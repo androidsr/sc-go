@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/androidsr/paas-go/paas"
+	"github.com/androidsr/sc-go/sc"
 )
 
 func getField(t interface{}, atFill bool) *ModelInfo {
@@ -16,7 +16,7 @@ func getField(t interface{}, atFill bool) *ModelInfo {
 	}
 	tableModel := new(ModelInfo)
 	tableModel.values = make([]interface{}, 0)
-	tableModel.TableName = paas.GetUnderscore(value.Type().Name())
+	tableModel.TableName = sc.GetUnderscore(value.Type().Name())
 	tableModel.tags = make([]TagInfo, 0)
 
 	for i := 0; i < value.NumField(); i++ {
@@ -40,7 +40,7 @@ func getField(t interface{}, atFill bool) *ModelInfo {
 			}
 		}
 		if key == "" {
-			key = paas.GetUnderscore(field.Type().Name())
+			key = sc.GetUnderscore(field.Type().Name())
 		}
 		tagItem.Column = key
 		if strings.ToLower(key) == "id" {

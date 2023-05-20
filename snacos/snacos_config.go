@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/androidsr/paas-go/syaml"
+	"github.com/androidsr/sc-go/syaml"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients/config_client"
 	"github.com/nacos-group/nacos-sdk-go/v2/vo"

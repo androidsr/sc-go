@@ -2,7 +2,7 @@ package wsocket
 
 /*
 func Test_NewWebsocket(t *testing.T) {
-	configs, _ := syaml.LoadFile[syaml.PaasRoot]("../paas.yaml")
+	configs, _ := syaml.LoadFile[syaml.PaasRoot]("../sc.yaml")
 	router := sgin.New(configs.Paas.Gin)
 	socket := New(websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {

@@ -7,11 +7,9 @@ import (
 	"log"
 	"strings"
 
-	_ "github.com/go-sql-driver/mysql"
-
-	"github.com/androidsr/paas-go/model"
-	"github.com/androidsr/paas-go/paas"
-	"github.com/androidsr/paas-go/syaml"
+	"github.com/androidsr/sc-go/model"
+	"github.com/androidsr/sc-go/paas"
+	"github.com/androidsr/sc-go/syaml"
 	"github.com/jmoiron/sqlx"
 )
 

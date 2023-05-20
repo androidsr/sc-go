@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/androidsr/paas-go/paas"
-	"github.com/androidsr/paas-go/syaml"
+	"github.com/androidsr/sc-go/sc"
+	"github.com/androidsr/sc-go/syaml"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients/naming_client"
 	"github.com/nacos-group/nacos-sdk-go/v2/model"
@@ -22,7 +22,7 @@ func NewNacosNaming() *NacosNaming {
 		NamingClient.config = config
 		ip := NamingClient.config.Discovery.Ip
 		if ip == "" {
-			NamingClient.ip = paas.GetIP(NamingClient.config.Discovery.Prefix)
+			NamingClient.ip = sc.GetIP(NamingClient.config.Discovery.Prefix)
 		} else {
 			NamingClient.ip = ip
 		}

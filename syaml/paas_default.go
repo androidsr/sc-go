@@ -1,10 +1,10 @@
 package syaml
 
-type PaasRoot struct {
-	Paas *PaasInfo `yaml:"paas"`
+type ScRoot struct {
+	Sc *ScInfo `yaml:"sc"`
 }
 
-type PaasInfo struct {
+type ScInfo struct {
 	Application string         `yaml:"application"`
 	Gin         *GinInfo       `yaml:"gin"`
 	Sqlx        *SqlxInfo      `yaml:"sqlx"`

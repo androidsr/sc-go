@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/Shopify/sarama"
-	"github.com/androidsr/paas-go/paas"
-	"github.com/androidsr/paas-go/syaml"
+	"github.com/androidsr/sc-go/sc"
+	"github.com/androidsr/sc-go/syaml"
 )
 
 func Test_NewProducer(t *testing.T) {
@@ -33,23 +33,23 @@ func Test_NewConsumer(t *testing.T) {
 	consumer.Settings.Consumer.Offsets.Initial = sarama.OffsetOldest
 	consumer.AddBack("test0", func(message *sarama.ConsumerMessage) bool {
 		time.Sleep(5 * time.Second)
-		fmt.Println("消息处理：", string(message.Key), message.Topic, message.Partition, message.Offset, string(message.Value), paas.FormatDateTimeString(time.Now()))
+		fmt.Println("消息处理：", string(message.Key), message.Topic, message.Partition, message.Offset, string(message.Value), sc.FormatDateTimeString(time.Now()))
 		return true
 	})
 	consumer.AddBack("test1", func(message *sarama.ConsumerMessage) bool {
-		fmt.Println("消息处理：", string(message.Key), message.Topic, message.Partition, message.Offset, string(message.Value), paas.FormatDateTimeString(time.Now()))
+		fmt.Println("消息处理：", string(message.Key), message.Topic, message.Partition, message.Offset, string(message.Value), sc.FormatDateTimeString(time.Now()))
 		return true
 	})
 	consumer.AddBack("test2", func(message *sarama.ConsumerMessage) bool {
-		fmt.Println("消息处理：", string(message.Key), message.Topic, message.Partition, message.Offset, string(message.Value), paas.FormatDateTimeString(time.Now()))
+		fmt.Println("消息处理：", string(message.Key), message.Topic, message.Partition, message.Offset, string(message.Value), sc.FormatDateTimeString(time.Now()))
 		return true
 	})
 	consumer.AddBack("test3", func(message *sarama.ConsumerMessage) bool {
-		fmt.Println("消息处理：", string(message.Key), message.Topic, message.Partition, message.Offset, string(message.Value), paas.FormatDateTimeString(time.Now()))
+		fmt.Println("消息处理：", string(message.Key), message.Topic, message.Partition, message.Offset, string(message.Value), sc.FormatDateTimeString(time.Now()))
 		return true
 	})
 	consumer.AddBack("test4", func(message *sarama.ConsumerMessage) bool {
-		fmt.Println("消息处理：", string(message.Key), message.Topic, message.Partition, message.Offset, string(message.Value), paas.FormatDateTimeString(time.Now()))
+		fmt.Println("消息处理：", string(message.Key), message.Topic, message.Partition, message.Offset, string(message.Value), sc.FormatDateTimeString(time.Now()))
 		return true
 	})
 	err = consumer.Listener(context.Background(), "default_group", []string{"test0", "test1", "test2", "test3", "test4"})

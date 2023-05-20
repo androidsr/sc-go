@@ -7,10 +7,10 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/androidsr/paas-go/model"
-	"github.com/androidsr/paas-go/scan"
-	"github.com/androidsr/paas-go/sjwt"
-	"github.com/androidsr/paas-go/syaml"
+	"github.com/androidsr/sc-go/model"
+	"github.com/androidsr/sc-go/scan"
+	"github.com/androidsr/sc-go/sjwt"
+	"github.com/androidsr/sc-go/syaml"
 	"github.com/gin-gonic/gin"
 	"github.com/timandy/routine"
 )
