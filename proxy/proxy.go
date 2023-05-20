@@ -1,66 +1,49 @@
 package proxy
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 	"net/http/httputil"
+	"net/url"
 	"strings"
 
 	"github.com/androidsr/sc-go/syaml"
-)
-
-var (
-	config *syaml.ProxyInfo
 )
 
 func New(config *syaml.ProxyInfo) {
 	for _, v := range config.Web {
 		http.Handle(v.Path, http.FileServer(http.Dir(v.Dir)))
 	}
-	for _, v := range config.Server {
-		fmt.Println(v.Name, v.Addr)
-		proxyServer(v.Name, v.Addr)
+
+	director := func(req *http.Request) {
+		addrConfig := getProxyTarget(req.URL.Path, config.Server)
+		target, _ := url.Parse(addrConfig.Addr)
+		req.URL.Scheme = target.Scheme
+		req.URL.Host = target.Host
+		req.URL.Path = strings.Replace(req.URL.Path, addrConfig.Name, "", 1)
 	}
+
+	proxy := &httputil.ReverseProxy{
+		Director: director,
+	}
+	// 启动服务器
+	var err error
 	if config.Cert == "" || config.Key == "" {
-		http.ListenAndServe(":"+config.Port, nil)
+		err = http.ListenAndServe(":"+config.Port, proxy)
 	} else {
-		http.ListenAndServeTLS(":"+config.Port, config.Cert, config.Key, nil)
+		err = http.ListenAndServeTLS(":"+config.Port, config.Cert, config.Key, proxy)
+	}
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 
-func proxyServer(pattern string, addr string) {
-	http.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
-		target := r.RequestURI
-		var key string
-		i := strings.Index(target[1:], "/")
-		key = target[1 : i+1]
-		if addr == "" {
-			return
+// 根据请求路径从映射中获取代理目标URL
+func getProxyTarget(path string, targets []syaml.ProxyServer) syaml.ProxyServer {
+	for _, target := range targets {
+		if strings.HasPrefix(path, target.Name) {
+			return target
 		}
-		fmt.Println(target, key)
-		last := strings.Index(target, "?")
-		var curl string
-		if last != -1 {
-			curl = target[7+len(key) : last]
-		} else {
-			curl = target[7+len(key):]
-		}
-		fmt.Println(curl)
-		proxy := httputil.ReverseProxy{Director: func(req *http.Request) {
-			n := strings.Index(addr, ":")
-			req.URL.Scheme = addr[:n]
-			ip := addr[n+3:]
-			n = strings.Index(ip, "/")
-			path := ""
-			fmt.Println(ip)
-			if n != -1 {
-				path = ip[n:]
-				ip = ip[:n]
-			}
-			fmt.Println(n, ip, path)
-			req.URL.Host = ip
-			req.URL.Path = path + curl
-		}}
-		proxy.ServeHTTP(w, r)
-	})
+	}
+	return syaml.ProxyServer{}
 }
