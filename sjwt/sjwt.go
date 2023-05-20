@@ -49,6 +49,15 @@ func ParseToken(tokenString string) (jwt.MapClaims, error) {
 	return nil, errors.New("invalid token")
 }
 
+func SetWebToken(c *gin.Context, tokenStr string) {
+	switch config.StoreType {
+	case 1:
+		c.Header(config.TokenName, "Bearer "+tokenStr)
+	case 2:
+		c.SetCookie(config.TokenName, "Bearer "+tokenStr, 60*config.Expire, "", "", false, true)
+	}
+}
+
 // 基于JWT的认证中间件
 func JWTAuthMiddleware() func(c *gin.Context) {
 	return func(c *gin.Context) {
