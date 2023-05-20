@@ -48,6 +48,7 @@ func (s *SGin) GetContent() routine.ThreadLocal {
 }
 
 func (g *SGin) autoRegister() {
+	fmt.Println("注册路由...")
 	for _, ctrl := range ctrls {
 		var value reflect.Value
 		if reflect.TypeOf(ctrl).Kind() == reflect.Ptr {
@@ -76,6 +77,7 @@ func (g *SGin) autoRegister() {
 				resultType = strings.ToLower(strings.TrimSpace(cms[3]))
 			}
 			m := value.MethodByName(method.Name)
+			fmt.Printf("请求方式：%s，请求地址：%s", httpMethod, relativePath)
 			g.Handle(httpMethod, relativePath, func(c *gin.Context) {
 				threadLocal.Set(c)
 				defer threadLocal.Remove()
