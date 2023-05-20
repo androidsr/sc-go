@@ -1,0 +1,97 @@
+paas:
+##########gin配置项##########
+  gin:
+    scan:
+      pkg: controller
+      filter: "@Router"
+    port: 8080
+#########JWT配置项###########
+  jwt:
+    tokenName: "Authentication"
+    storeType: 1 ## 1:Header ,2:cookie, 3: url
+    secretKey: 1qaz2wsx53647593626637
+    expire: 20
+    whiteList:
+      - /login
+##########sqlx配置项##########
+  sqlx:
+    driver: mysql
+    url: root:wisesoft@tcp(172.16.9.19:3306)/codemg?charset=utf8
+    maxIdle: 5
+    maxOpen: 3
+
+##########雪花算法配置项##########
+  snowflake:
+    workerId: 1
+
+##########yaml配置项##########
+  yaml:
+    mode: local  ##local / nacos
+    file: paas.yaml
+
+##########nacos配置项##########
+  nacos:
+    scheme: http
+    ipAddr: 127.0.0.1
+    port: 8848
+    config:
+      dataId: paas-go.yaml
+      namespace: aaa199a4-48a7-4c49-9cdf-5b627ed25fb6
+      group: DEFAULT_GROUP
+      sharedConfigs[0]:
+        dataId: common.yaml
+    discovery:
+      namespace: aaa199a4-48a7-4c49-9cdf-5b627ed25fb6
+      group: DEFAULT_GROUP
+      serviceName: paas-go
+      port: 8080
+      ip: 
+      prefix:
+
+##########redis配置项##########
+  redis:
+    database: 0
+    password: 123456
+    master: #master
+    Mode: standalone ## sentinel,cluster,standalone
+    nodes:
+      - 127.0.0.1:26379
+    pool:
+      poolSize:
+      minIdleConns: 0
+      maxIdleConns: 0
+      dialTimeout: 5000
+      readTimeout: 5000
+      writeTimeout: 5000
+
+
+##########kafka配置项##########
+  kafka:
+    nodes: 
+      - 127.0.0.1:9092
+    group: default-group
+    producer:
+      requiredAcks: -1 # 不等待响应:0; 当前节点成功:1 全部节点成功:-1
+      partitioner: -1
+      successes: true
+      errors: true
+      retryMax: 3
+      retryBackoff: 100
+    consumer:
+      maxOpenRequests: 1
+      returnErrors: true
+      autoCommitEnable: true
+      autoCommitInterval: 1
+      retryMax: 3
+
+##########反向代理服务器配置项##########
+  proxy:
+    port: 8181
+    cert:
+    key:
+    web:
+      - path: / 
+        dir: 
+    server:
+      - name: /api
+        addr: http://localhost:8080
