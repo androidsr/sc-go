@@ -48,7 +48,7 @@ func (s *SGin) GetContent() routine.ThreadLocal {
 }
 
 func (g *SGin) autoRegister() {
-	fmt.Println("注册路由...")
+	fmt.Printf("路由注册大小：%d\n", len(ctrls))
 	for _, ctrl := range ctrls {
 		var value reflect.Value
 		if reflect.TypeOf(ctrl).Kind() == reflect.Ptr {
@@ -56,6 +56,7 @@ func (g *SGin) autoRegister() {
 		} else {
 			value = reflect.ValueOf(ctrl)
 		}
+		fmt.Println(value.Type().Name())
 		doc := g.docs[value.Type().Name()]
 		for i := 0; i < value.NumMethod(); i++ {
 			method := value.Type().Method(i)
