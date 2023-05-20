@@ -19,8 +19,8 @@ func New(config *syaml.ProxyInfo) {
 	director := func(req *http.Request) {
 		addrConfig := getProxyTarget(req.URL.Path, config.Server)
 		target, _ := url.Parse(addrConfig.Addr)
-		if sc.IsNotEmpty(target.Scheme) {
-			target.Scheme = "http"
+		if sc.IsEmpty(target.Scheme) {
+			return
 		}
 		req.URL.Scheme = target.Scheme
 		req.URL.Host = target.Host
