@@ -29,7 +29,7 @@ func GenerateToken(data jwt.MapClaims) (tokenString string, err error) {
 	data["notBefore"] = time.Now().Unix()
 	data["expiresAt"] = time.Now().Add(time.Duration(config.Expire) * time.Minute).Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, data)
-	tokenString, err = token.SignedString(config.SecretKey)
+	tokenString, err = token.SignedString([]byte(config.SecretKey))
 	return
 }
 
@@ -37,7 +37,7 @@ func GenerateToken(data jwt.MapClaims) (tokenString string, err error) {
 func ParseToken(tokenString string) (jwt.MapClaims, error) {
 	// 解析token
 	token, err := jwt.ParseWithClaims(tokenString, &jwt.MapClaims{}, func(token *jwt.Token) (i interface{}, err error) {
-		return config.SecretKey, nil
+		return []byte(config.SecretKey), nil
 	})
 	if err != nil {
 		return nil, err
