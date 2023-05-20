@@ -2,7 +2,6 @@ package sjwt
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -55,13 +54,11 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		url := c.Request.URL.Path
 		for _, v := range config.WhiteList {
-			fmt.Println(v, url, v == url)
 			if v == url {
 				c.Next()
 				return
 			}
 		}
-		fmt.Println("...........")
 		var tokenStr string
 		switch config.StoreType {
 		case 1:
