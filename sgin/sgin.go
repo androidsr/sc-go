@@ -77,7 +77,7 @@ func (g *SGin) autoRegister() {
 				resultType = strings.ToLower(strings.TrimSpace(cms[3]))
 			}
 			m := value.MethodByName(method.Name)
-			fmt.Printf("请求方式：%s，请求地址：%s", httpMethod, relativePath)
+			fmt.Printf("路由注册：%s：%s", httpMethod, relativePath)
 			g.Handle(httpMethod, relativePath, func(c *gin.Context) {
 				threadLocal.Set(c)
 				defer threadLocal.Remove()
