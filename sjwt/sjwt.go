@@ -2,10 +2,13 @@ package sjwt
 
 import (
 	"errors"
+	"fmt"
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/androidsr/sc-go/model"
+	"github.com/androidsr/sc-go/sc"
 	"github.com/androidsr/sc-go/syaml"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
@@ -25,8 +28,8 @@ func New(cfg *syaml.WebTokenInfo) {
 
 // 生成 Token
 func GenerateToken(data jwt.MapClaims) (tokenString string, err error) {
-	data["notBefore"] = time.Now().Unix()
-	data["expiresAt"] = time.Now().Add(time.Duration(config.Expire) * time.Minute).Unix()
+	data["notBefore"] = sc.FormatDateTimeString(time.Now())
+	data["expiresAt"] = sc.FormatDateTimeString(time.Now().Add(time.Duration(config.Expire) * time.Minute))
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, data)
 	tokenString, err = token.SignedString([]byte(config.SecretKey))
 	return
@@ -35,14 +38,14 @@ func GenerateToken(data jwt.MapClaims) (tokenString string, err error) {
 // ParseToken 解析JWT
 func ParseToken(tokenString string) (jwt.MapClaims, error) {
 	// 解析token
-	token, err := jwt.ParseWithClaims(tokenString, &jwt.MapClaims{}, func(token *jwt.Token) (i interface{}, err error) {
+	token, err := jwt.ParseWithClaims(tokenString, jwt.MapClaims{}, func(token *jwt.Token) (i interface{}, err error) {
 		return []byte(config.SecretKey), nil
 	})
 	if err != nil {
 		return nil, err
 	}
-
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid { // 校验token
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if ok && token.Valid { // 校验token
 		return claims, nil
 	}
 	return nil, errors.New("invalid token")
@@ -82,20 +85,23 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 			c.Abort()
 			return
 		}
-
+		fmt.Println(tokenStr)
 		mc, err := ParseToken(tokenStr)
 		if err != nil {
+			log.Println(err)
 			c.JSON(http.StatusUnauthorized, model.NewFail(401, "无效的Token"))
 			c.Abort()
 			return
 		}
 		// 检查JWT令牌是否快要过期
-		expiresAt, ok := mc["expiresAt"].(int64)
+		e, ok := mc["expiresAt"].(string)
 		if !ok {
 			c.JSON(http.StatusUnauthorized, model.NewFail(401, "无效的Token"))
 			c.Abort()
 		}
-		if (expiresAt-time.Now().Unix())/60 < int64(config.Expire)*60/3 {
+
+		expiresAt := sc.ParseDateTime(e)
+		if expiresAt.Sub(time.Now().Local()).Minutes() <= float64(config.Expire/3) {
 			// 如果快要过期，则刷新JWT令牌
 			tokenStr, _ := GenerateToken(mc)
 			switch config.StoreType {

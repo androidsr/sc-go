@@ -36,62 +36,58 @@ func GetUnderscore(s string) string {
 	return strings.ToLower(result)
 }
 
-func GetDateTime(t time.Time) time.Time {
-	return time.Now()
+func GetDateTime() time.Time {
+	return time.Now().Local()
 }
 
 func FormatDateString(t time.Time) string {
-	return t.Format("2006-01-02")
+	return t.Local().Format("2006-01-02")
 }
 
 func FormatTimeString(t time.Time) string {
-	return t.Format("15:04:05")
+
+	return t.Local().Format("15:04:05")
 }
 
 func FormatDateTimeString(t time.Time) string {
-	return t.Format("2006-01-02 15:04:05")
+	return t.Local().Format("2006-01-02 15:04:05")
 }
 
 func FormatDateStringNumber(t time.Time) string {
-	return t.Format("20060102")
+	return t.Local().Format("20060102")
 }
 
 func FormatTimeStringNumber(t time.Time) string {
-	return t.Format("150405")
+	return t.Local().Format("150405")
 }
 
 func FormatDateTimeStringNumber(t time.Time) string {
-	return t.Format("20060102150405")
+	return t.Local().Format("20060102150405")
 }
 
 func ParseDate(ymd_ string) time.Time {
-	loc, _ := time.LoadLocation("Local")
-	t, _ := time.ParseInLocation("2006-01-02", ymd_, loc)
-	return t
+	t, _ := time.Parse("2006-01-02", ymd_)
+	return t.Local()
 }
 
 func ParseTime(hms_ string) time.Time {
-	loc, _ := time.LoadLocation("Local")
-	t, _ := time.ParseInLocation("15:04:05", hms_, loc)
-	return t
+	t, _ := time.Parse("15:04:05", hms_)
+	return t.Local()
 }
 
 func ParseDateTime(ymd_ string) time.Time {
-	loc, _ := time.LoadLocation("Local")
-	theTime, _ := time.ParseInLocation("2006-01-02 15:04:05", ymd_, loc)
-	return theTime
+	t, _ := time.Parse("2006-01-02 15:04:05", ymd_)
+	return t.Local()
 }
 
 func ParseDateNumber(ymd string) time.Time {
-	loc, _ := time.LoadLocation("Local")
-	t, _ := time.ParseInLocation("20060102", ymd, loc)
-	return t
+	t, _ := time.Parse("20060102", ymd)
+	return t.Local()
 }
 
 func ParseTimeNumber(hms string) time.Time {
-	loc, _ := time.LoadLocation("Local")
-	t, _ := time.ParseInLocation("150405", hms, loc)
-	return t
+	t, _ := time.Parse("150405", hms)
+	return t.Local()
 }
 
 func ParseDateTimeNumber(ymd string) time.Time {
