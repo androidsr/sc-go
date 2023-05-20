@@ -56,7 +56,7 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 		url := c.Request.URL.Path
 		fmt.Println(url)
 		for _, v := range config.WhiteList {
-			fmt.Println(v, url)
+			fmt.Println(v, url, v == url)
 			if v == url {
 				c.Next()
 				return
