@@ -2,6 +2,7 @@ package sjwt
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -53,6 +54,7 @@ func ParseToken(tokenString string) (jwt.MapClaims, error) {
 func JWTAuthMiddleware() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		url := c.Request.URL.Path
+		fmt.Println(url)
 		for _, v := range config.WhiteList {
 			if v == url {
 				c.Next()
