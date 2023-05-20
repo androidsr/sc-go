@@ -3,7 +3,6 @@ package sjwt
 import (
 	"errors"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/androidsr/sc-go/model"
@@ -52,9 +51,9 @@ func ParseToken(tokenString string) (jwt.MapClaims, error) {
 func SetWebToken(c *gin.Context, tokenStr string) {
 	switch config.StoreType {
 	case 1:
-		c.Header(config.TokenName, "Bearer "+tokenStr)
+		c.Header(config.TokenName, tokenStr)
 	case 2:
-		c.SetCookie(config.TokenName, "Bearer "+tokenStr, 60*config.Expire, "", "", false, true)
+		c.SetCookie(config.TokenName, tokenStr, 60*config.Expire, "", "", false, true)
 	}
 }
 
@@ -84,14 +83,7 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 			return
 		}
 
-		parts := strings.SplitN(tokenStr, " ", 2)
-		if !(len(parts) == 2 && parts[0] == "Bearer") {
-			c.JSON(http.StatusUnauthorized, model.NewFail(401, "JSON Web Token 格式不正确;示例【Bearer xxx.xxx.xxx】"))
-			c.Abort()
-			return
-		}
-
-		mc, err := ParseToken(parts[1])
+		mc, err := ParseToken(tokenStr)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, model.NewFail(401, "无效的Token"))
 			c.Abort()
