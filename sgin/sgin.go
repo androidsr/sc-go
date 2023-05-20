@@ -58,7 +58,7 @@ func (g *SGin) autoRegister() {
 		}
 		fmt.Println(value.Type().Name())
 		doc := g.docs[value.Type().Name()]
-		for i := 0; i < value.NumMethod(); i++ {
+		for i := 0; i < value.Type().NumMethod(); i++ {
 			method := value.Type().Method(i)
 			comment := doc[method.Name]
 			if comment == "" {
