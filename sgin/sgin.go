@@ -56,7 +56,6 @@ func (g *SGin) autoRegister() {
 		} else {
 			value = reflect.ValueOf(ctrl)
 		}
-		fmt.Println(value.Type().Name())
 		doc := g.docs[value.Type().Name()]
 		for i := 0; i < value.Type().NumMethod(); i++ {
 			method := value.Type().Method(i)
