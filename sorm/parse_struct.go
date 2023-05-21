@@ -3,26 +3,34 @@ package sorm
 import (
 	"bytes"
 	"fmt"
+	"github.com/jmoiron/sqlx/reflectx"
 	"reflect"
 	"strings"
 
 	"github.com/androidsr/sc-go/sc"
 )
 
-func getField(t interface{}, atFill bool) *ModelInfo {
-	value := reflect.ValueOf(t)
-	if value.Kind() == reflect.Ptr {
-		value = value.Elem()
+func baseType(t reflect.Type, expected reflect.Kind) reflect.Type {
+	t = reflectx.Deref(t)
+	if t.Kind() != expected {
+		return nil
 	}
-	if value.Kind() == reflect.Slice {
-		value = value.Index(0)
+	return t
+}
+
+func getField(t interface{}, atFill bool) *ModelInfo {
+	value := reflect.Indirect(reflect.ValueOf(t))
+
+	vType := baseType(value.Type(), reflect.Slice)
+	if vType == nil {
+		vType = value.Type()
 	}
 	tableModel := new(ModelInfo)
 	tableModel.values = make([]interface{}, 0)
 	tableModel.TableName = sc.GetUnderscore(value.Type().Name())
 	tableModel.tags = make([]TagInfo, 0)
 
-	for i := 0; i < value.Type().NumField(); i++ {
+	for i := 0; i < vType.NumField(); i++ {
 		field := value.Field(i)
 		tagItem := TagInfo{}
 		tag := value.Type().Field(i).Tag
