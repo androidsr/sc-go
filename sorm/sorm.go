@@ -264,19 +264,13 @@ func (m *Sorm) SelectListPage(data interface{}, sql string, page model.PageInfo,
 			continue
 		}
 		condition := args[i].(string)
-		var v []interface{}
-		if sc.IsSlice(value) {
-			condition = strings.ReplaceAll(condition, "?", Placeholders(len(value.([]interface{}))))
-			v = value.([]interface{})
+		vs := sc.AssertSliceType(value)
+		if len(vs) > 1 {
+			condition = strings.ReplaceAll(condition, "?", Placeholders(len(vs)))
 		}
 		condi.WriteString(condition)
 		condi.WriteString(" ")
-
-		if len(v) != 0 {
-			values = append(values, v...)
-		} else {
-			values = append(values, value)
-		}
+		values = append(values, vs...)
 	}
 	sql = fmt.Sprintf("%s %s", sql, condi.String())
 
@@ -329,19 +323,13 @@ func (m *Sorm) Select(data interface{}, sql string, args ...interface{}) error {
 			continue
 		}
 		condition := args[i].(string)
-		var v []interface{}
-		if sc.IsSlice(value) {
-			condition = strings.ReplaceAll(condition, "?", Placeholders(len(value.([]interface{}))))
-			v = value.([]interface{})
+		vs := sc.AssertSliceType(value)
+		if len(vs) > 1 {
+			condition = strings.ReplaceAll(condition, "?", Placeholders(len(vs)))
 		}
 		condi.WriteString(condition)
 		condi.WriteString(" ")
-
-		if len(v) != 0 {
-			values = append(values, v...)
-		} else {
-			values = append(values, value)
-		}
+		values = append(values, vs...)
 	}
 	sql = fmt.Sprintf("%s %s", sql, condi.String())
 
@@ -384,19 +372,13 @@ func (m *Sorm) FindList(data interface{}, args ...interface{}) error {
 			continue
 		}
 		condition := args[i].(string)
-		var v []interface{}
-		if sc.IsSlice(value) {
-			condition = strings.ReplaceAll(condition, "?", Placeholders(len(value.([]interface{}))))
-			v = value.([]interface{})
+		vs := sc.AssertSliceType(value)
+		if len(vs) > 1 {
+			condition = strings.ReplaceAll(condition, "?", Placeholders(len(vs)))
 		}
 		condi.WriteString(condition)
 		condi.WriteString(" ")
-
-		if len(v) != 0 {
-			values = append(values, v...)
-		} else {
-			values = append(values, value)
-		}
+		values = append(values, vs...)
 	}
 
 	tableModel := GetField(data, false)
@@ -421,19 +403,13 @@ func (m *Sorm) FindOne(data interface{}, args ...interface{}) error {
 			continue
 		}
 		condition := args[i].(string)
-		var v []interface{}
-		if sc.IsSlice(value) {
-			condition = strings.ReplaceAll(condition, "?", Placeholders(len(value.([]interface{}))))
-			v = value.([]interface{})
+		vs := sc.AssertSliceType(value)
+		if len(vs) > 1 {
+			condition = strings.ReplaceAll(condition, "?", Placeholders(len(vs)))
 		}
 		condi.WriteString(condition)
 		condi.WriteString(" ")
-
-		if len(v) != 0 {
-			values = append(values, v...)
-		} else {
-			values = append(values, value)
-		}
+		values = append(values, vs...)
 	}
 
 	tableModel := GetField(data, false)
