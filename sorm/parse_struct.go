@@ -24,6 +24,7 @@ func getField(t interface{}, atFill bool) *ModelInfo {
 	if value.Kind() == reflect.Slice {
 		vType = value.Type().Elem()
 		value = reflect.ValueOf(vType)
+		value = reflect.Indirect(reflect.ValueOf(t))
 	}
 	tableModel := new(ModelInfo)
 	tableModel.values = make([]interface{}, 0)
