@@ -146,56 +146,6 @@ func GetIP(prefix string) string {
 	return ""
 }
 
-func IsEmpty(value interface{}) bool {
-	if value == nil {
-		return true
-	}
-
-	switch v := reflect.ValueOf(value); v.Kind() {
-	case reflect.Array, reflect.Chan, reflect.Map, reflect.Slice, reflect.String:
-		return v.Len() == 0
-	case reflect.Bool:
-		return !v.Bool()
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return v.Int() == 0
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return v.Uint() == 0
-	case reflect.Float32, reflect.Float64:
-		return v.Float() == 0
-	case reflect.Complex64, reflect.Complex128:
-		return v.Complex() == 0
-	case reflect.Ptr, reflect.Interface:
-		return v.IsNil()
-	default:
-		return false
-	}
-}
-
-func IsNotEmpty(value interface{}) bool {
-	if value == nil {
-		return false
-	}
-
-	switch v := reflect.ValueOf(value); v.Kind() {
-	case reflect.Array, reflect.Chan, reflect.Map, reflect.Slice, reflect.String:
-		return v.Len() != 0
-	case reflect.Bool:
-		return v.Bool()
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return v.Int() != 0
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return v.Uint() != 0
-	case reflect.Float32, reflect.Float64:
-		return v.Float() != 0
-	case reflect.Complex64, reflect.Complex128:
-		return v.Complex() != 0
-	case reflect.Ptr, reflect.Interface:
-		return !v.IsNil()
-	default:
-		return false
-	}
-}
-
 func IsSlice(value interface{}) bool {
 	valueType := reflect.ValueOf(value)
 	return valueType.Kind() == reflect.Slice

@@ -216,7 +216,7 @@ func (m *Sorm) SelectPage(data interface{}, sql string, page model.PageInfo, que
 	sql = fmt.Sprintf("%s %s", sql, condi)
 
 	result := new(model.PageResult)
-	if sc.IsNotEmpty(page) {
+	if &page != nil {
 		if page.Current == 0 {
 			page.Current = 1
 		}
@@ -260,7 +260,7 @@ func (m *Sorm) SelectListPage(data interface{}, sql string, page model.PageInfo,
 	values := make([]interface{}, 0)
 	for i := 0; i < len(args)/2; i++ {
 		value := args[i+1]
-		if sc.IsEmpty(value) {
+		if value == nil || value == "" {
 			continue
 		}
 		condition := args[i].(string)
@@ -275,7 +275,7 @@ func (m *Sorm) SelectListPage(data interface{}, sql string, page model.PageInfo,
 	sql = fmt.Sprintf("%s %s", sql, condi.String())
 
 	result := new(model.PageResult)
-	if sc.IsNotEmpty(page) {
+	if &page != nil {
 		if page.Current == 0 {
 			page.Current = 1
 		}
@@ -319,7 +319,7 @@ func (m *Sorm) Select(data interface{}, sql string, args ...interface{}) error {
 	values := make([]interface{}, 0)
 	for i := 0; i < len(args)/2; i++ {
 		value := args[i+1]
-		if sc.IsEmpty(value) {
+		if value == nil || value == "" {
 			continue
 		}
 		condition := args[i].(string)
@@ -368,7 +368,7 @@ func (m *Sorm) FindList(data interface{}, args ...interface{}) error {
 	values := make([]interface{}, 0)
 	for i := 0; i < len(args)/2; i++ {
 		value := args[i+1]
-		if sc.IsEmpty(value) {
+		if value == nil || value == "" {
 			continue
 		}
 		condition := args[i].(string)
@@ -399,7 +399,7 @@ func (m *Sorm) FindOne(data interface{}, args ...interface{}) error {
 
 	for i := 0; i < len(args)/2; i++ {
 		value := args[i+1]
-		if sc.IsEmpty(value) {
+		if value == nil || value == "" {
 			continue
 		}
 		condition := args[i].(string)
