@@ -33,7 +33,7 @@ func getField(t interface{}, atFill bool) *ModelInfo {
 	for i := 0; i < vType.NumField(); i++ {
 		field := value.Field(i)
 		tagItem := TagInfo{}
-		tag := value.Type().Field(i).Tag
+		tag := vType.Field(i).Tag
 		key := tag.Get("db")
 		if key == "" {
 			key = tag.Get("json")
@@ -51,7 +51,7 @@ func getField(t interface{}, atFill bool) *ModelInfo {
 			}
 		}
 		if key == "" {
-			key = sc.GetUnderscore(field.Type().Name())
+			key = sc.GetUnderscore(vType.Name())
 		}
 		tagItem.Column = key
 		if strings.ToLower(key) == "id" {
