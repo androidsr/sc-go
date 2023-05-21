@@ -264,13 +264,15 @@ func (m *Sorm) SelectListPage(data interface{}, sql string, page model.PageInfo,
 			continue
 		}
 		condition := args[i].(string)
+		var v []interface{}
 		if sc.IsArray(value) {
 			condition = strings.ReplaceAll(condition, "?", Placeholders(len(value.([]interface{}))))
+			v = value.([]interface{})
 		}
 		condi.WriteString(condition)
 		condi.WriteString(" ")
-		v, ok := value.([]interface{})
-		if ok {
+
+		if len(v) != 0 {
 			values = append(values, v...)
 		} else {
 			values = append(values, value)
@@ -327,13 +329,15 @@ func (m *Sorm) Select(data interface{}, sql string, args ...interface{}) error {
 			continue
 		}
 		condition := args[i].(string)
+		var v []interface{}
 		if sc.IsArray(value) {
 			condition = strings.ReplaceAll(condition, "?", Placeholders(len(value.([]interface{}))))
+			v = value.([]interface{})
 		}
 		condi.WriteString(condition)
 		condi.WriteString(" ")
-		v, ok := value.([]interface{})
-		if ok {
+
+		if len(v) != 0 {
 			values = append(values, v...)
 		} else {
 			values = append(values, value)
@@ -380,13 +384,15 @@ func (m *Sorm) FindList(data interface{}, args ...interface{}) error {
 			continue
 		}
 		condition := args[i].(string)
+		var v []interface{}
 		if sc.IsArray(value) {
 			condition = strings.ReplaceAll(condition, "?", Placeholders(len(value.([]interface{}))))
+			v = value.([]interface{})
 		}
 		condi.WriteString(condition)
 		condi.WriteString(" ")
-		v, ok := value.([]interface{})
-		if ok {
+
+		if len(v) != 0 {
 			values = append(values, v...)
 		} else {
 			values = append(values, value)
