@@ -18,19 +18,17 @@ func baseType(t reflect.Type, expected reflect.Kind) reflect.Type {
 	return t
 }
 
-func getField(t interface{}, atFill bool) *ModelInfo {
+func GetField(t interface{}, atFill bool) *ModelInfo {
 	value := reflect.Indirect(reflect.ValueOf(t))
 	vType := value.Type()
 	if value.Kind() == reflect.Slice {
 		vType = value.Type().Elem()
-		value = reflect.ValueOf(vType)
-		value = reflect.Indirect(reflect.ValueOf(t))
+		value = reflect.New(vType).Elem()
 	}
 	tableModel := new(ModelInfo)
 	tableModel.values = make([]interface{}, 0)
 	tableModel.TableName = sc.GetUnderscore(value.Type().Name())
 	tableModel.tags = make([]TagInfo, 0)
-
 	for i := 0; i < vType.NumField(); i++ {
 		field := value.Field(i)
 		tagItem := TagInfo{}
