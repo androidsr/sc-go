@@ -14,6 +14,9 @@ func getField(t interface{}, atFill bool) *ModelInfo {
 	if value.Kind() == reflect.Ptr {
 		value = value.Elem()
 	}
+	if value.Kind() == reflect.Slice {
+		value = value.Index(0)
+	}
 	tableModel := new(ModelInfo)
 	tableModel.values = make([]interface{}, 0)
 	tableModel.TableName = sc.GetUnderscore(value.Type().Name())
