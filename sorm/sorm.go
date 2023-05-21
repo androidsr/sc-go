@@ -261,11 +261,13 @@ func (m *Sorm) SelectListPage(data interface{}, sql string, page model.PageInfo,
 		if value == nil || value == "" {
 			continue
 		}
-		w := condition[i]
 		vs := sc.AssertSliceType(value)
-		w = strings.ReplaceAll(w, "?", Placeholders(len(vs)))
-		condi.WriteString(w)
-		condi.WriteString(" ")
+		if condition != nil && len(condition) != 0 {
+			w := condition[i]
+			w = strings.ReplaceAll(w, "?", Placeholders(len(vs)))
+			condi.WriteString(w)
+			condi.WriteString(" ")
+		}
 		values = append(values, vs...)
 	}
 	sql = fmt.Sprintf("%s %s", sql, condi.String())
@@ -316,11 +318,13 @@ func (m *Sorm) Select(data interface{}, sql string, condition []string, args ...
 		if value == nil || value == "" {
 			continue
 		}
-		w := condition[i]
 		vs := sc.AssertSliceType(value)
-		w = strings.ReplaceAll(w, "?", Placeholders(len(vs)))
-		condi.WriteString(w)
-		condi.WriteString(" ")
+		if condition != nil && len(condition) != 0 {
+			w := condition[i]
+			w = strings.ReplaceAll(w, "?", Placeholders(len(vs)))
+			condi.WriteString(w)
+			condi.WriteString(" ")
+		}
 		values = append(values, vs...)
 	}
 	sql = fmt.Sprintf("%s %s", sql, condi.String())
@@ -362,11 +366,13 @@ func (m *Sorm) FindList(data interface{}, condition []string, args ...interface{
 		if value == nil || value == "" {
 			continue
 		}
-		w := condition[i]
 		vs := sc.AssertSliceType(value)
-		w = strings.ReplaceAll(w, "?", Placeholders(len(vs)))
-		condi.WriteString(w)
-		condi.WriteString(" ")
+		if condition != nil && len(condition) != 0 {
+			w := condition[i]
+			w = strings.ReplaceAll(w, "?", Placeholders(len(vs)))
+			condi.WriteString(w)
+			condi.WriteString(" ")
+		}
 		values = append(values, vs...)
 	}
 
@@ -389,11 +395,13 @@ func (m *Sorm) FindOne(data interface{}, condition []string, args ...interface{}
 		if value == nil || value == "" {
 			continue
 		}
-		w := condition[i]
 		vs := sc.AssertSliceType(value)
-		w = strings.ReplaceAll(w, "?", Placeholders(len(vs)))
-		condi.WriteString(w)
-		condi.WriteString(" ")
+		if condition != nil && len(condition) != 0 {
+			w := condition[i]
+			w = strings.ReplaceAll(w, "?", Placeholders(len(vs)))
+			condi.WriteString(w)
+			condi.WriteString(" ")
+		}
 		values = append(values, vs...)
 	}
 
