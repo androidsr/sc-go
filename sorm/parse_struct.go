@@ -137,20 +137,16 @@ func setKeyword(tableModel *ModelInfo) string {
 
 		case In:
 			v, ok := tableModel.values[i].([]interface{})
-			if !ok {
-
+			if ok {
+				condition.WriteString(fmt.Sprintf(" and %s in(%s) ", keyword.Column, Placeholders(len(v))))
+				newValue = append(newValue, v...)
 			}
-			condition.WriteString(fmt.Sprintf(" and %s in(%s) ", keyword.Column, Placeholders(len(v))))
-			newValue = append(newValue, v...)
-
 		case NotIn:
 			v, ok := tableModel.values[i].([]interface{})
-			if !ok {
-
+			if ok {
+				condition.WriteString(fmt.Sprintf(" and %s not in(%s) ", keyword.Column, Placeholders(len(v))))
+				newValue = append(newValue, v...)
 			}
-			condition.WriteString(fmt.Sprintf(" and %s not in(%s) ", keyword.Column, Placeholders(len(v))))
-			newValue = append(newValue, v...)
-
 		case Gt:
 			condition.WriteString(fmt.Sprintf(" and %s > ? ", keyword.Column))
 			newValue = append(newValue, tableModel.values[i])

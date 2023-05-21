@@ -269,7 +269,12 @@ func (m *Sorm) SelectListPage(data interface{}, sql string, page model.PageInfo,
 		}
 		condi.WriteString(condition)
 		condi.WriteString(" ")
-		values = append(values, value)
+		v, ok := value.([]interface{})
+		if ok {
+			values = append(values, v...)
+		} else {
+			values = append(values, value)
+		}
 	}
 	sql = fmt.Sprintf("%s %s", sql, condi.String())
 
@@ -327,7 +332,12 @@ func (m *Sorm) Select(data interface{}, sql string, args ...interface{}) error {
 		}
 		condi.WriteString(condition)
 		condi.WriteString(" ")
-		values = append(values, value)
+		v, ok := value.([]interface{})
+		if ok {
+			values = append(values, v...)
+		} else {
+			values = append(values, value)
+		}
 	}
 	sql = fmt.Sprintf("%s %s", sql, condi.String())
 
@@ -375,7 +385,12 @@ func (m *Sorm) FindList(data interface{}, args ...interface{}) error {
 		}
 		condi.WriteString(condition)
 		condi.WriteString(" ")
-		values = append(values, value)
+		v, ok := value.([]interface{})
+		if ok {
+			values = append(values, v...)
+		} else {
+			values = append(values, value)
+		}
 	}
 
 	tableModel := GetField(data, false)
@@ -405,7 +420,12 @@ func (m *Sorm) FindOne(data interface{}, args ...interface{}) error {
 		}
 		condi.WriteString(condition)
 		condi.WriteString(" ")
-		values = append(values, value)
+		v, ok := value.([]interface{})
+		if ok {
+			values = append(values, v...)
+		} else {
+			values = append(values, value)
+		}
 	}
 
 	tableModel := GetField(data, false)
