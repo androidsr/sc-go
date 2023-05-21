@@ -228,6 +228,7 @@ func (m *Sorm) SelectPage(data interface{}, sql string, page model.PageInfo, que
 		}
 		result.Total = int64(count)
 		offset := (page.Current - 1) * page.Size
+		result.Current = offset
 		orderBy := bytes.Buffer{}
 		if page.Orders != nil {
 			orderBy.WriteString("order by ")
@@ -285,6 +286,7 @@ func (m *Sorm) SelectListPage(data interface{}, sql string, page model.PageInfo,
 		}
 		result.Total = int64(count)
 		offset := (page.Current - 1) * page.Size
+		result.Current = offset
 		orderBy := bytes.Buffer{}
 		if page.Orders != nil {
 			orderBy.WriteString("order by ")
