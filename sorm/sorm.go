@@ -230,6 +230,7 @@ func (m *Sorm) SelectPage(data interface{}, sql string, page model.PageInfo, que
 		offset := (page.Current - 1) * page.Size
 		orderBy := bytes.Buffer{}
 		if page.Orders != nil {
+			orderBy.WriteString("order by ")
 			for _, v := range page.Orders {
 				orderBy.WriteString(fmt.Sprintf(" %s ", v.Column))
 				if v.Asc {
@@ -239,7 +240,7 @@ func (m *Sorm) SelectPage(data interface{}, sql string, page model.PageInfo, que
 				}
 			}
 		}
-		sql = fmt.Sprintf("select * from (%s) t order by %s LIMIT ? OFFSET ?", sql, orderBy.String())
+		sql = fmt.Sprintf("select * from (%s) t %s LIMIT ? OFFSET ?", sql, orderBy.String())
 		tableModel.values = append(tableModel.values, page.Size, offset)
 	}
 	printSQL(sql, tableModel.values)
@@ -287,6 +288,7 @@ func (m *Sorm) SelectListPage(data interface{}, sql string, page model.PageInfo,
 		offset := (page.Current - 1) * page.Size
 		orderBy := bytes.Buffer{}
 		if page.Orders != nil {
+			orderBy.WriteString("order by ")
 			for _, v := range page.Orders {
 				orderBy.WriteString(fmt.Sprintf(" %s ", v.Column))
 				if v.Asc {
@@ -296,7 +298,7 @@ func (m *Sorm) SelectListPage(data interface{}, sql string, page model.PageInfo,
 				}
 			}
 		}
-		sql = fmt.Sprintf("select * from (%s) t order by %s LIMIT ? OFFSET ?", sql, orderBy.String())
+		sql = fmt.Sprintf("select * from (%s) t %s LIMIT ? OFFSET ?", sql, orderBy.String())
 		args = append(args, page.Size, offset)
 	}
 	printSQL(sql, args)
