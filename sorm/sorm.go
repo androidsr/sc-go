@@ -90,7 +90,7 @@ func (m *Sorm) GetCount(obj interface{}) int {
 func (m *Sorm) SelectCount(sql string, values ...interface{}) int {
 	var count int
 	sql = fmt.Sprintf("select count(*) from (%s) t", sql)
-	printSQL(sql, values)
+	printSQL(sql, values...)
 	err := m.DB.Get(&count, sql, values...)
 	if err != nil {
 		log.Printf("SQL error:%s\n %v", sql, err)
@@ -103,7 +103,7 @@ func (m *Sorm) SelectCount(sql string, values ...interface{}) int {
 func (m *Sorm) Insert(obj interface{}) int64 {
 	tableModel := GetField(obj, true)
 	sql := insertSQL(tableModel)
-	printSQL(sql, tableModel.values)
+	printSQL(sql, tableModel.values...)
 	ret, err := m.DB.Exec(sql, tableModel.values...)
 	return getAffectedRow(ret, err)
 }
@@ -112,7 +112,7 @@ func (m *Sorm) Insert(obj interface{}) int64 {
 func (m *Sorm) InsertTx(db *sqlx.Tx, obj interface{}) int64 {
 	tableModel := GetField(obj, true)
 	sql := insertSQL(tableModel)
-	printSQL(sql, tableModel.values)
+	printSQL(sql, tableModel.values...)
 	ret, err := db.Exec(sql, tableModel.values...)
 	return getAffectedRow(ret, err)
 }
@@ -132,7 +132,7 @@ func insertSQL(tableModel *ModelInfo) string {
 func (m *Sorm) UpdateById(obj interface{}) int64 {
 	tableModel := GetField(obj, true)
 	sql := updateSQL(tableModel, tableModel.PrimaryKey)
-	printSQL(sql, tableModel.values)
+	printSQL(sql, tableModel.values...)
 	ret, err := m.DB.Exec(sql, tableModel.values...)
 	return getAffectedRow(ret, err)
 }
@@ -145,7 +145,7 @@ func (m *Sorm) Update(obj interface{}, condition ...string) int64 {
 	}
 	tableModel := GetField(obj, true)
 	sql := updateSQL(tableModel, condition...)
-	printSQL(sql, tableModel.values)
+	printSQL(sql, tableModel.values...)
 	ret, err := m.DB.Exec(sql, tableModel.values...)
 	return getAffectedRow(ret, err)
 }
@@ -158,7 +158,7 @@ func (m *Sorm) UpdateTx(db *sqlx.Tx, obj interface{}, condition ...string) int64
 	}
 	tableModel := GetField(obj, true)
 	sql := updateSQL(tableModel, condition...)
-	printSQL(sql, tableModel.values)
+	printSQL(sql, tableModel.values...)
 	ret, err := db.Exec(sql, tableModel.values...)
 	return getAffectedRow(ret, err)
 }
@@ -186,7 +186,7 @@ func updateSQL(tableModel *ModelInfo, condition ...string) string {
 func (m *Sorm) Delete(obj interface{}) int64 {
 	tableModel := GetField(obj, false)
 	sql := deleteSQL(tableModel)
-	printSQL(sql, tableModel.values)
+	printSQL(sql, tableModel.values...)
 	ret, err := m.DB.Exec(sql, tableModel.values...)
 	return getAffectedRow(ret, err)
 }
@@ -195,7 +195,7 @@ func (m *Sorm) Delete(obj interface{}) int64 {
 func (m *Sorm) DeleteTx(db *sqlx.Tx, obj interface{}) int64 {
 	tableModel := GetField(obj, false)
 	sql := deleteSQL(tableModel)
-	printSQL(sql, tableModel.values)
+	printSQL(sql, tableModel.values...)
 	ret, err := db.Exec(sql, tableModel.values...)
 	return getAffectedRow(ret, err)
 }
@@ -244,7 +244,7 @@ func (m *Sorm) SelectPage(data interface{}, sql string, page model.PageInfo, que
 		sql = fmt.Sprintf("select * from (%s) t %s LIMIT ? OFFSET ?", sql, orderBy.String())
 		tableModel.values = append(tableModel.values, page.Size, offset)
 	}
-	printSQL(sql, tableModel.values)
+	printSQL(sql, tableModel.values...)
 	err := m.DB.Select(data, sql, tableModel.values...)
 	if err != nil {
 		log.Printf("sql error: %v\n", err)
@@ -305,7 +305,7 @@ func (m *Sorm) SelectListPage(data interface{}, sql string, page model.PageInfo,
 		sql = fmt.Sprintf("select * from (%s) t %s LIMIT ? OFFSET ?", sql, orderBy.String())
 		args = append(args, page.Size, offset)
 	}
-	printSQL(sql, args)
+	printSQL(sql, values...)
 	err := m.DB.Select(data, sql, values...)
 	if err != nil {
 		log.Printf("sql error: %v\n", err)
@@ -337,7 +337,7 @@ func (m *Sorm) Select(data interface{}, sql string, condition []string, args ...
 	}
 	sql = fmt.Sprintf("%s %s", sql, condi.String())
 
-	printSQL(sql, args)
+	printSQL(sql, values...)
 	err := m.DB.Select(data, sql, values...)
 	if err != nil {
 		log.Printf("sql error: %v\n", err)
@@ -462,7 +462,7 @@ func (m *Sorm) SelectOne(data interface{}, query interface{}, columns ...string)
 	sql := fmt.Sprintf("select %s from %s where 1=1 ", cols, tableModel.TableName)
 	condi := setKeyword(tableModel)
 	sql += condi
-	printSQL(sql, tableModel.values)
+	printSQL(sql, tableModel.values...)
 	err := m.DB.Get(data, sql, tableModel.values...)
 	if err != nil {
 		log.Printf("sql error:%v\n", err)
@@ -483,7 +483,7 @@ func (m *Sorm) GetOne(data interface{}, columns ...string) error {
 	sql := fmt.Sprintf("select %s from %s where 1=1 ", cols, tableModel.TableName)
 	condi := setKeyword(tableModel)
 	sql += condi
-	printSQL(sql, tableModel.values)
+	printSQL(sql, tableModel.values...)
 	err := m.DB.Get(data, sql, tableModel.values...)
 	if err != nil {
 		log.Printf("sql error:%v\n", err)
@@ -504,7 +504,7 @@ func (m *Sorm) SelectOneTx(tx *sqlx.Tx, data interface{}, query interface{}, col
 	sql := fmt.Sprintf("select %s from %s where 1=1 ", cols, tableModel.TableName)
 	condi := setKeyword(tableModel)
 	sql += condi
-	printSQL(sql, tableModel.values)
+	printSQL(sql, tableModel.values...)
 	err := tx.Get(data, sql, tableModel.values...)
 	if err != nil {
 		log.Printf("sql error:%v\n", err)
@@ -514,7 +514,7 @@ func (m *Sorm) SelectOneTx(tx *sqlx.Tx, data interface{}, query interface{}, col
 }
 
 // 打印SQL信息
-func printSQL(sql string, values []interface{}) {
+func printSQL(sql string, values ...interface{}) {
 	fmt.Printf("exec sql: %s\n ", sql)
 	fmt.Printf("sql input values: %v\n ", values)
 }
