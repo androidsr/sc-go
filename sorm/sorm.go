@@ -525,11 +525,3 @@ func getAffectedRow(ret sql.Result, err error) int64 {
 	}
 	return n
 }
-
-func SliceToInterface[T any](vs []T) []interface{} {
-	result := make([]interface{}, 0)
-	for _, v := range vs {
-		result = append(result, v)
-	}
-	return result
-}

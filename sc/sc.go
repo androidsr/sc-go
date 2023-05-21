@@ -2,7 +2,6 @@ package sc
 
 import (
 	"fmt"
-	"github.com/androidsr/sc-go/sorm"
 	"net"
 	"reflect"
 	"strings"
@@ -202,34 +201,42 @@ func IsSlice(value interface{}) bool {
 	return valueType.Kind() == reflect.Slice
 }
 
+func SliceToInterface[T any](vs []T) []interface{} {
+	result := make([]interface{}, 0)
+	for _, v := range vs {
+		result = append(result, v)
+	}
+	return result
+}
+
 func AssertSliceType(value interface{}) []interface{} {
 	vStr, okStr := value.([]string)
 	if okStr {
-		return sorm.SliceToInterface(vStr)
+		return SliceToInterface(vStr)
 	}
 	vInt, okInt := value.([]int)
 	if okInt {
-		return sorm.SliceToInterface(vInt)
+		return SliceToInterface(vInt)
 	}
 	vInt64, okInt64 := value.([]int64)
 	if okInt64 {
-		return sorm.SliceToInterface(vInt64)
+		return SliceToInterface(vInt64)
 	}
 	vBool, okBool := value.([]bool)
 	if okBool {
-		return sorm.SliceToInterface(vBool)
+		return SliceToInterface(vBool)
 	}
 	vF32, okF32 := value.([]float32)
 	if okF32 {
-		return sorm.SliceToInterface(vF32)
+		return SliceToInterface(vF32)
 	}
 	vF64, okF64 := value.([]float64)
 	if okF64 {
-		return sorm.SliceToInterface(vF64)
+		return SliceToInterface(vF64)
 	}
 	inter, interOk := value.([]interface{})
 	if interOk {
-		return sorm.SliceToInterface(inter)
+		return SliceToInterface(inter)
 	}
 	return []interface{}{value}
 }
