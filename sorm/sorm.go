@@ -415,13 +415,15 @@ func (m *Sorm) FindOne(data interface{}, args ...interface{}) error {
 			continue
 		}
 		condition := args[i].(string)
+		var v []interface{}
 		if sc.IsArray(value) {
 			condition = strings.ReplaceAll(condition, "?", Placeholders(len(value.([]interface{}))))
+			v = value.([]interface{})
 		}
 		condi.WriteString(condition)
 		condi.WriteString(" ")
-		v, ok := value.([]interface{})
-		if ok {
+
+		if len(v) != 0 {
 			values = append(values, v...)
 		} else {
 			values = append(values, value)
