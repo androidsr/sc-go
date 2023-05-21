@@ -264,9 +264,7 @@ func (m *Sorm) SelectListPage(data interface{}, sql string, page model.PageInfo,
 		}
 		condition := args[i].(string)
 		vs := sc.AssertSliceType(value)
-		if len(vs) > 1 {
-			condition = strings.ReplaceAll(condition, "?", Placeholders(len(vs)))
-		}
+		condition = strings.ReplaceAll(condition, "?", Placeholders(len(vs)))
 		condi.WriteString(condition)
 		condi.WriteString(" ")
 		values = append(values, vs...)
@@ -322,9 +320,7 @@ func (m *Sorm) Select(data interface{}, sql string, args ...interface{}) error {
 		}
 		condition := args[i].(string)
 		vs := sc.AssertSliceType(value)
-		if len(vs) > 1 {
-			condition = strings.ReplaceAll(condition, "?", Placeholders(len(vs)))
-		}
+		condition = strings.ReplaceAll(condition, "?", Placeholders(len(vs)))
 		condi.WriteString(condition)
 		condi.WriteString(" ")
 		values = append(values, vs...)
@@ -371,9 +367,7 @@ func (m *Sorm) FindList(data interface{}, args ...interface{}) error {
 		}
 		condition := args[i].(string)
 		vs := sc.AssertSliceType(value)
-		if len(vs) > 1 {
-			condition = strings.ReplaceAll(condition, "?", Placeholders(len(vs)))
-		}
+		condition = strings.ReplaceAll(condition, "?", Placeholders(len(vs)))
 		condi.WriteString(condition)
 		condi.WriteString(" ")
 		values = append(values, vs...)
@@ -402,9 +396,7 @@ func (m *Sorm) FindOne(data interface{}, args ...interface{}) error {
 		}
 		condition := args[i].(string)
 		vs := sc.AssertSliceType(value)
-		if len(vs) > 1 {
-			condition = strings.ReplaceAll(condition, "?", Placeholders(len(vs)))
-		}
+		condition = strings.ReplaceAll(condition, "?", Placeholders(len(vs)))
 		condi.WriteString(condition)
 		condi.WriteString(" ")
 		values = append(values, vs...)
