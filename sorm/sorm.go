@@ -229,9 +229,7 @@ func (m *Sorm) SelectPage(data interface{}, sql string, page model.PageInfo, que
 		result.Total = int64(count)
 		offset := (page.Current - 1) * page.Size
 		orderBy := bytes.Buffer{}
-		if page.Orders == nil {
-			orderBy.WriteString(" a.id asc ")
-		} else {
+		if page.Orders != nil {
 			for _, v := range page.Orders {
 				orderBy.WriteString(fmt.Sprintf(" %s ", v.Column))
 				if v.Asc {
@@ -288,9 +286,7 @@ func (m *Sorm) SelectListPage(data interface{}, sql string, page model.PageInfo,
 		result.Total = int64(count)
 		offset := (page.Current - 1) * page.Size
 		orderBy := bytes.Buffer{}
-		if page.Orders == nil {
-			orderBy.WriteString(" a.id asc ")
-		} else {
+		if page.Orders != nil {
 			for _, v := range page.Orders {
 				orderBy.WriteString(fmt.Sprintf(" %s ", v.Column))
 				if v.Asc {
