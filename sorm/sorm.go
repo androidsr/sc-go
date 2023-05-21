@@ -263,6 +263,9 @@ func (m *Sorm) SelectListPage(data interface{}, sql string, page model.PageInfo,
 			continue
 		}
 		vs := sc.AssertSliceType(value)
+		if len(vs) == 0 {
+			continue
+		}
 		if condition != nil && len(condition) != 0 {
 			w := condition[i]
 			w = strings.ReplaceAll(w, "?", Placeholders(len(vs)))
@@ -321,6 +324,9 @@ func (m *Sorm) Select(data interface{}, sql string, condition []string, args ...
 			continue
 		}
 		vs := sc.AssertSliceType(value)
+		if len(vs) == 0 {
+			continue
+		}
 		if condition != nil && len(condition) != 0 {
 			w := condition[i]
 			w = strings.ReplaceAll(w, "?", Placeholders(len(vs)))
@@ -369,6 +375,9 @@ func (m *Sorm) FindList(data interface{}, condition []string, args ...interface{
 			continue
 		}
 		vs := sc.AssertSliceType(value)
+		if len(vs) == 0 {
+			continue
+		}
 		if condition != nil && len(condition) != 0 {
 			w := condition[i]
 			w = strings.ReplaceAll(w, "?", Placeholders(len(vs)))
@@ -398,6 +407,9 @@ func (m *Sorm) FindOne(data interface{}, condition []string, args ...interface{}
 			continue
 		}
 		vs := sc.AssertSliceType(value)
+		if len(vs) == 0 {
+			continue
+		}
 		if condition != nil && len(condition) != 0 {
 			w := condition[i]
 			w = strings.ReplaceAll(w, "?", Placeholders(len(vs)))
