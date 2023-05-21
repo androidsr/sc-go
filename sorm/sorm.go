@@ -313,7 +313,7 @@ func (m *Sorm) SelectListPage(data interface{}, sql string, page model.PageInfo,
 }
 
 // 分页查询数据
-func (m *Sorm) Select(data interface{}, sql string, args ...interface{}) *model.PageResult {
+func (m *Sorm) Select(data interface{}, sql string, args ...interface{}) error {
 	condi := bytes.Buffer{}
 	values := make([]interface{}, 0)
 	for i := 0; i < len(args)/2; i++ {
@@ -331,15 +331,13 @@ func (m *Sorm) Select(data interface{}, sql string, args ...interface{}) *model.
 	}
 	sql = fmt.Sprintf("%s %s", sql, condi.String())
 
-	result := new(model.PageResult)
 	printSQL(sql, args)
 	err := m.DB.Select(data, sql, args...)
 	if err != nil {
 		log.Printf("sql error: %v\n", err)
-		return nil
+		return err
 	}
-	result.Rows = data
-	return result
+	return nil
 }
 
 // 查询集合

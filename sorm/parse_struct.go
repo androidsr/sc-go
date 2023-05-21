@@ -19,7 +19,7 @@ func getField(t interface{}, atFill bool) *ModelInfo {
 	tableModel.TableName = sc.GetUnderscore(value.Type().Name())
 	tableModel.tags = make([]TagInfo, 0)
 
-	for i := 0; i < value.NumField(); i++ {
+	for i := 0; i < value.Type().NumField(); i++ {
 		field := value.Field(i)
 		tagItem := TagInfo{}
 		tag := value.Type().Field(i).Tag
