@@ -312,6 +312,36 @@ func (m *Sorm) SelectListPage(data interface{}, sql string, page model.PageInfo,
 	return result
 }
 
+// 分页查询数据
+func (m *Sorm) Select(data interface{}, sql string, args ...interface{}) *model.PageResult {
+	condi := bytes.Buffer{}
+	values := make([]interface{}, 0)
+	for i := 0; i < len(args)/2; i++ {
+		value := args[i+1]
+		if sc.IsEmpty(value) {
+			continue
+		}
+		condition := args[i].(string)
+		if sc.IsArray(value) {
+			condition = strings.ReplaceAll(condition, "?", Placeholders(len(value.([]interface{}))))
+		}
+		condi.WriteString(condition)
+		condi.WriteString(" ")
+		values = append(values, value)
+	}
+	sql = fmt.Sprintf("%s %s", sql, condi.String())
+
+	result := new(model.PageResult)
+	printSQL(sql, args)
+	err := m.DB.Select(data, sql, args...)
+	if err != nil {
+		log.Printf("sql error: %v\n", err)
+		return nil
+	}
+	result.Rows = data
+	return result
+}
+
 // 查询集合
 func (m *Sorm) SelectList(data interface{}, query interface{}, columns ...string) error {
 	tableModel := getField(query, false)

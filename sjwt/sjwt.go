@@ -2,7 +2,6 @@ package sjwt
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -85,7 +84,6 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 			c.Abort()
 			return
 		}
-		fmt.Println(tokenStr)
 		mc, err := ParseToken(tokenStr)
 		if err != nil {
 			log.Println(err)
