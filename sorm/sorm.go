@@ -277,7 +277,7 @@ func (m *Sorm) SelectListPage(data interface{}, sql string, page model.PageInfo,
 		if page.Current == 0 {
 			page.Current = 1
 		}
-		count := m.SelectCount(sql, args...)
+		count := m.SelectCount(sql, values...)
 		result.Current = page.Current
 		result.Size = page.Size
 		if count == 0 {
@@ -301,7 +301,7 @@ func (m *Sorm) SelectListPage(data interface{}, sql string, page model.PageInfo,
 		args = append(args, page.Size, offset)
 	}
 	printSQL(sql, args)
-	err := m.DB.Select(data, sql, args...)
+	err := m.DB.Select(data, sql, values...)
 	if err != nil {
 		log.Printf("sql error: %v\n", err)
 		return nil
@@ -330,7 +330,7 @@ func (m *Sorm) Select(data interface{}, sql string, condition []string, args ...
 	sql = fmt.Sprintf("%s %s", sql, condi.String())
 
 	printSQL(sql, args)
-	err := m.DB.Select(data, sql, args...)
+	err := m.DB.Select(data, sql, values...)
 	if err != nil {
 		log.Printf("sql error: %v\n", err)
 		return err
