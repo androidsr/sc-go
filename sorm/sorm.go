@@ -265,7 +265,7 @@ func (m *Sorm) SelectListPage(data interface{}, sql string, page model.PageInfo,
 		}
 		condition := args[i].(string)
 		var v []interface{}
-		if sc.IsArray(value) {
+		if sc.IsSlice(value) {
 			condition = strings.ReplaceAll(condition, "?", Placeholders(len(value.([]interface{}))))
 			v = value.([]interface{})
 		}
@@ -330,7 +330,7 @@ func (m *Sorm) Select(data interface{}, sql string, args ...interface{}) error {
 		}
 		condition := args[i].(string)
 		var v []interface{}
-		if sc.IsArray(value) {
+		if sc.IsSlice(value) {
 			condition = strings.ReplaceAll(condition, "?", Placeholders(len(value.([]interface{}))))
 			v = value.([]interface{})
 		}
@@ -385,7 +385,7 @@ func (m *Sorm) FindList(data interface{}, args ...interface{}) error {
 		}
 		condition := args[i].(string)
 		var v []interface{}
-		if sc.IsArray(value) {
+		if sc.IsSlice(value) {
 			condition = strings.ReplaceAll(condition, "?", Placeholders(len(value.([]interface{}))))
 			v = value.([]interface{})
 		}
@@ -422,7 +422,7 @@ func (m *Sorm) FindOne(data interface{}, args ...interface{}) error {
 		}
 		condition := args[i].(string)
 		var v []interface{}
-		if sc.IsArray(value) {
+		if sc.IsSlice(value) {
 			condition = strings.ReplaceAll(condition, "?", Placeholders(len(value.([]interface{}))))
 			v = value.([]interface{})
 		}

@@ -196,7 +196,7 @@ func IsNotEmpty(value interface{}) bool {
 	}
 }
 
-func IsArray(value interface{}) bool {
-	valueType := reflect.TypeOf(value)
-	return valueType.Kind() == reflect.Array
+func IsSlice(value interface{}) bool {
+	valueType := reflect.ValueOf(value)
+	return valueType.Kind() == reflect.Slice
 }
