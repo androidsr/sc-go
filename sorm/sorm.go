@@ -303,7 +303,7 @@ func (m *Sorm) SelectListPage(data interface{}, sql string, page model.PageInfo,
 			}
 		}
 		sql = fmt.Sprintf("select * from (%s) t %s LIMIT ? OFFSET ?", sql, orderBy.String())
-		args = append(args, page.Size, offset)
+		values = append(values, page.Size, offset)
 	}
 	printSQL(sql, values...)
 	err := m.DB.Select(data, sql, values...)
