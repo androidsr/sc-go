@@ -254,18 +254,17 @@ func (m *Sorm) SelectPage(data interface{}, sql string, page model.PageInfo, que
 }
 
 // 分页查询数据
-func (m *Sorm) SelectListPage(data interface{}, sql string, page model.PageInfo, args ...interface{}) *model.PageResult {
+func (m *Sorm) SelectListPage(data interface{}, sql string, page model.PageInfo, condition []string, args ...interface{}) *model.PageResult {
 	condi := bytes.Buffer{}
 	values := make([]interface{}, 0)
-	for i := 0; i < len(args)/2; i++ {
-		value := args[i+1]
+	for i, value := range args {
 		if value == nil || value == "" {
 			continue
 		}
-		condition := args[i].(string)
+		w := condition[i]
 		vs := sc.AssertSliceType(value)
-		condition = strings.ReplaceAll(condition, "?", Placeholders(len(vs)))
-		condi.WriteString(condition)
+		w = strings.ReplaceAll(w, "?", Placeholders(len(vs)))
+		condi.WriteString(w)
 		condi.WriteString(" ")
 		values = append(values, vs...)
 	}
@@ -310,18 +309,17 @@ func (m *Sorm) SelectListPage(data interface{}, sql string, page model.PageInfo,
 }
 
 // 分页查询数据
-func (m *Sorm) Select(data interface{}, sql string, args ...interface{}) error {
+func (m *Sorm) Select(data interface{}, sql string, condition []string, args ...interface{}) error {
 	condi := bytes.Buffer{}
 	values := make([]interface{}, 0)
-	for i := 0; i < len(args)/2; i++ {
-		value := args[i+1]
+	for i, value := range args {
 		if value == nil || value == "" {
 			continue
 		}
-		condition := args[i].(string)
+		w := condition[i]
 		vs := sc.AssertSliceType(value)
-		condition = strings.ReplaceAll(condition, "?", Placeholders(len(vs)))
-		condi.WriteString(condition)
+		w = strings.ReplaceAll(w, "?", Placeholders(len(vs)))
+		condi.WriteString(w)
 		condi.WriteString(" ")
 		values = append(values, vs...)
 	}
@@ -357,18 +355,17 @@ func (m *Sorm) SelectList(data interface{}, query interface{}, columns ...string
 }
 
 // 查询集合
-func (m *Sorm) FindList(data interface{}, args ...interface{}) error {
+func (m *Sorm) FindList(data interface{}, condition []string, args ...interface{}) error {
 	condi := bytes.Buffer{}
 	values := make([]interface{}, 0)
-	for i := 0; i < len(args)/2; i++ {
-		value := args[i+1]
+	for i, value := range args {
 		if value == nil || value == "" {
 			continue
 		}
-		condition := args[i].(string)
+		w := condition[i]
 		vs := sc.AssertSliceType(value)
-		condition = strings.ReplaceAll(condition, "?", Placeholders(len(vs)))
-		condi.WriteString(condition)
+		w = strings.ReplaceAll(w, "?", Placeholders(len(vs)))
+		condi.WriteString(w)
 		condi.WriteString(" ")
 		values = append(values, vs...)
 	}
@@ -385,19 +382,17 @@ func (m *Sorm) FindList(data interface{}, args ...interface{}) error {
 }
 
 // 查询集合
-func (m *Sorm) FindOne(data interface{}, args ...interface{}) error {
+func (m *Sorm) FindOne(data interface{}, condition []string, args ...interface{}) error {
 	condi := bytes.Buffer{}
 	values := make([]interface{}, 0)
-
-	for i := 0; i < len(args)/2; i++ {
-		value := args[i+1]
+	for i, value := range args {
 		if value == nil || value == "" {
 			continue
 		}
-		condition := args[i].(string)
+		w := condition[i]
 		vs := sc.AssertSliceType(value)
-		condition = strings.ReplaceAll(condition, "?", Placeholders(len(vs)))
-		condi.WriteString(condition)
+		w = strings.ReplaceAll(w, "?", Placeholders(len(vs)))
+		condi.WriteString(w)
 		condi.WriteString(" ")
 		values = append(values, vs...)
 	}
