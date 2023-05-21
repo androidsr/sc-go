@@ -20,10 +20,10 @@ func baseType(t reflect.Type, expected reflect.Kind) reflect.Type {
 
 func getField(t interface{}, atFill bool) *ModelInfo {
 	value := reflect.Indirect(reflect.ValueOf(t))
-
-	vType := baseType(value.Type(), reflect.Slice)
-	if vType == nil {
-		vType = value.Type()
+	vType := value.Type()
+	if value.Kind() == reflect.Slice {
+		vType = value.Type().Elem()
+		value = reflect.ValueOf(vType)
 	}
 	tableModel := new(ModelInfo)
 	tableModel.values = make([]interface{}, 0)
