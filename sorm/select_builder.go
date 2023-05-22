@@ -3,6 +3,7 @@ package sorm
 import (
 	"bytes"
 	"fmt"
+	"strings"
 
 	"github.com/androidsr/sc-go/sc"
 )
@@ -13,9 +14,13 @@ type SelectBuilder struct {
 }
 
 func Builder(sql string) *SelectBuilder {
+
 	builder := new(SelectBuilder)
 	builder.sql = *bytes.NewBufferString(sql)
 	builder.values = make([]interface{}, 0)
+	if strings.Contains(sql, " where ") {
+		builder.sql.WriteString(" where 1=1 ")
+	}
 	return builder
 }
 
@@ -135,6 +140,10 @@ func (m *SelectBuilder) LikeRight(column string, value interface{}) {
 	}
 	m.sql.WriteString(fmt.Sprintf(" and %s not like CONCAT(?, '%s') ", column, "%"))
 	m.values = append(m.values, value)
+}
+
+func (m *SelectBuilder) Append(column string) {
+	m.sql.WriteString(" " + column)
 }
 
 func (m *SelectBuilder) Build() (string, []interface{}) {
