@@ -1,11 +1,10 @@
 package sorm
 
 import (
-	"bytes"
-	"fmt"
-	"github.com/jmoiron/sqlx/reflectx"
 	"reflect"
 	"strings"
+
+	"github.com/jmoiron/sqlx/reflectx"
 
 	"github.com/androidsr/sc-go/sc"
 )
@@ -121,80 +120,43 @@ type BetweenInfo struct {
 	Right interface{} `json:"end"`
 }
 
-func setKeyword(tableModel *ModelInfo) string {
-	condition := bytes.Buffer{}
-	newValue := make([]interface{}, 0)
+func buildQuery(tableModel *ModelInfo) string {
+	builder := Builder(" ")
 	for i, tag := range tableModel.tags {
 		keyword := tag.Keyword
 		switch keyword.Type {
 		case Eq:
-			condition.WriteString(fmt.Sprintf(" and %s = ? ", keyword.Column))
-			newValue = append(newValue, tableModel.values[i])
-
+			builder.Eq(keyword.Column, tableModel.values[i])
 		case Ne:
-			condition.WriteString(fmt.Sprintf(" and %s <> ? ", keyword.Column))
-			newValue = append(newValue, tableModel.values[i])
-
+			builder.Eq(keyword.Column, tableModel.values[i])
 		case In:
-			v := sc.AssertSliceType(tableModel.values[i])
-			if len(v) != 0 {
-				condition.WriteString(fmt.Sprintf(" and %s in(%s) ", keyword.Column, Placeholders(len(v))))
-				newValue = append(newValue, v...)
-			}
+			builder.Eq(keyword.Column, tableModel.values[i])
 		case NotIn:
-			v := sc.AssertSliceType(tableModel.values[i])
-			if len(v) != 0 {
-				condition.WriteString(fmt.Sprintf(" and %s not in(%s) ", keyword.Column, Placeholders(len(v))))
-				newValue = append(newValue, v...)
-			}
+			builder.Eq(keyword.Column, tableModel.values[i])
 		case Gt:
-			condition.WriteString(fmt.Sprintf(" and %s > ? ", keyword.Column))
-			newValue = append(newValue, tableModel.values[i])
-
+			builder.Eq(keyword.Column, tableModel.values[i])
 		case Lt:
-			condition.WriteString(fmt.Sprintf(" and %s < ? ", keyword.Column))
-			newValue = append(newValue, tableModel.values[i])
-
+			builder.Eq(keyword.Column, tableModel.values[i])
 		case Ge:
-			condition.WriteString(fmt.Sprintf(" and %s >= ? ", keyword.Column))
-			newValue = append(newValue, tableModel.values[i])
-
+			builder.Eq(keyword.Column, tableModel.values[i])
 		case Le:
-			condition.WriteString(fmt.Sprintf(" and %s <= ? ", keyword.Column))
-			newValue = append(newValue, tableModel.values[i])
-
+			builder.Eq(keyword.Column, tableModel.values[i])
 		case Between:
-			v, ok := tableModel.values[i].(BetweenInfo)
-			if ok {
-				condition.WriteString(fmt.Sprintf(" and %s between ? and ? ", keyword.Column))
-				newValue = append(newValue, v.Left, v.Right)
-			}
+			builder.Eq(keyword.Column, tableModel.values[i])
 		case NotBetween:
-			v, ok := tableModel.values[i].(BetweenInfo)
-			if ok {
-				condition.WriteString(fmt.Sprintf(" and %s not between ? and ? ", keyword.Column))
-				newValue = append(newValue, v.Left, v.Right)
-			}
+			builder.Eq(keyword.Column, tableModel.values[i])
 		case Like:
-			condition.WriteString(fmt.Sprintf(" and %s like CONCAT('%s', ?, '%s') ", keyword.Column, "%", "%"))
-			newValue = append(newValue, tableModel.values[i])
-
+			builder.Eq(keyword.Column, tableModel.values[i])
 		case NotLike:
-			condition.WriteString(fmt.Sprintf(" and %s not like CONCAT('%s', ?, '%s') ", keyword.Column, "%", "%"))
-			newValue = append(newValue, tableModel.values[i])
-
+			builder.Eq(keyword.Column, tableModel.values[i])
 		case LikeLeft:
-			condition.WriteString(fmt.Sprintf(" and %s like CONCAT('%s', ?) ", keyword.Column, "%"))
-			newValue = append(newValue, tableModel.values[i])
-
+			builder.Eq(keyword.Column, tableModel.values[i])
 		case LikeRight:
-			condition.WriteString(fmt.Sprintf(" and %s like CONCAT( ?, '%s') ", keyword.Column, "%"))
-			newValue = append(newValue, tableModel.values[i])
-
+			builder.Eq(keyword.Column, tableModel.values[i])
 		}
 	}
-	tableModel.values = newValue
-	return condition.String()
+	tableModel.values = builder.values
+	return builder.sql.String()
 }
 
 func Placeholders(n int) string {
