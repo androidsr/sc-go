@@ -10,153 +10,286 @@ import (
 
 type SelectBuilder struct {
 	sql    bytes.Buffer
+	link   string
 	values []interface{}
+	links  bool
 }
 
 func Builder(sql string) *SelectBuilder {
 	builder := new(SelectBuilder)
 	builder.sql = *bytes.NewBufferString(sql)
+	builder.link = "and"
+	builder.links = false
 	builder.values = make([]interface{}, 0)
-	if strings.Contains(sql, " where ") {
+	if !strings.Contains(sql, " where ") {
 		builder.sql.WriteString(" where 1=1 ")
 	}
 	return builder
 }
 
-func (m *SelectBuilder) Eq(column string, value interface{}) *SelectBuilder {
+func (m *SelectBuilder) Eq(column string, value interface{}) string {
 	if value == nil || value == "" {
-		return m
+		return ""
 	}
-	m.sql.WriteString(fmt.Sprintf(" and %s = ? ", column))
+	sql := fmt.Sprintf(" %s %s = ? ", m.link, column)
 	m.values = append(m.values, value)
-	return m
+	if m.links {
+		return sql
+	} else {
+		m.sql.WriteString(sql)
+	}
+	return ""
 }
 
-func (m *SelectBuilder) Ne(column string, value interface{}) *SelectBuilder {
+func (m *SelectBuilder) Ne(column string, value interface{}) string {
 	if value == nil || value == "" {
-		return m
+		return ""
 	}
-	m.sql.WriteString(fmt.Sprintf(" and %s <> ? ", column))
+	sql := fmt.Sprintf(" %s %s <> ? ", m.link, column)
 	m.values = append(m.values, value)
-	return m
+	if m.links {
+		return sql
+	} else {
+		m.sql.WriteString(sql)
+	}
+	return ""
 }
 
-func (m *SelectBuilder) In(column string, value interface{}) *SelectBuilder {
+func (m *SelectBuilder) In(column string, value interface{}) string {
 	if value == nil || value == "" {
-		return m
+		return ""
 	}
 	v := sc.AssertSliceType(value)
 	if len(v) != 0 {
-		m.sql.WriteString(fmt.Sprintf(" and %s in(%s) ", column, Placeholders(len(v))))
+		sql := fmt.Sprintf(" %s %s in(%s) ", m.link, column, Placeholders(len(v)))
 		m.values = append(m.values, v...)
+		if m.links {
+			return sql
+		} else {
+			m.sql.WriteString(sql)
+		}
 	}
-	return m
+
+	return ""
 }
 
-func (m *SelectBuilder) NotIn(column string, value interface{}) *SelectBuilder {
+func (m *SelectBuilder) NotIn(column string, value interface{}) string {
 	if value == nil || value == "" {
-		return m
+		return ""
 	}
 	v := sc.AssertSliceType(value)
 	if len(v) != 0 {
-		m.sql.WriteString(fmt.Sprintf(" and %s not in(%s) ", column, Placeholders(len(v))))
+		sql := fmt.Sprintf(" %s %s not in(%s) ", m.link, column, Placeholders(len(v)))
 		m.values = append(m.values, v...)
+		if m.links {
+			return sql
+		} else {
+			m.sql.WriteString(sql)
+		}
 	}
-	return m
+	return ""
 }
 
-func (m *SelectBuilder) Gt(column string, value interface{}) *SelectBuilder {
+func (m *SelectBuilder) Gt(column string, value interface{}) string {
 	if value == nil || value == "" {
-		return m
+		return ""
 	}
-	m.sql.WriteString(fmt.Sprintf(" and %s > ? ", column))
+	sql := fmt.Sprintf(" %s %s > ? ", m.link, column)
 	m.values = append(m.values, value)
-	return m
+	if m.links {
+		return sql
+	} else {
+		m.sql.WriteString(sql)
+	}
+	return ""
 }
 
-func (m *SelectBuilder) Lt(column string, value interface{}) *SelectBuilder {
+func (m *SelectBuilder) Lt(column string, value interface{}) string {
 	if value == nil || value == "" {
-		return m
+		return ""
 	}
-	m.sql.WriteString(fmt.Sprintf(" and %s < ? ", column))
+	sql := fmt.Sprintf(" %s %s < ? ", m.link, column)
 	m.values = append(m.values, value)
-	return m
+	if m.links {
+		return sql
+	} else {
+		m.sql.WriteString(sql)
+	}
+	return ""
 }
 
-func (m *SelectBuilder) Ge(column string, value interface{}) *SelectBuilder {
+func (m *SelectBuilder) Ge(column string, value interface{}) string {
 	if value == nil || value == "" {
-		return m
+		return ""
 	}
-	m.sql.WriteString(fmt.Sprintf(" and %s >= ? ", column))
+	sql := fmt.Sprintf(" %s %s >= ? ", m.link, column)
 	m.values = append(m.values, value)
-	return m
+	if m.links {
+		return sql
+	} else {
+		m.sql.WriteString(sql)
+	}
+	return ""
 }
 
-func (m *SelectBuilder) Le(column string, value interface{}) *SelectBuilder {
+func (m *SelectBuilder) Le(column string, value interface{}) string {
 	if value == nil || value == "" {
-		return m
+		return ""
 	}
-	m.sql.WriteString(fmt.Sprintf(" and %s <= ? ", column))
+	sql := fmt.Sprintf(" %s %s <= ? ", m.link, column)
 	m.values = append(m.values, value)
-	return m
+	if m.links {
+		return sql
+	} else {
+		m.sql.WriteString(sql)
+	}
+	return ""
 }
 
-func (m *SelectBuilder) Between(column string, value BetweenInfo) *SelectBuilder {
+func (m *SelectBuilder) Between(column string, value BetweenInfo) string {
 	if &value == nil || value.Left == nil || value.Left == "" || value.Right == nil || value.Right == "" {
-		return m
+		return ""
 	}
-	m.sql.WriteString(fmt.Sprintf(" and %s between ? and ? ", column))
+	sql := fmt.Sprintf(" %s %s between ? and ? ", m.link, column)
 	m.values = append(m.values, value.Left, value.Right)
-	return m
+	if m.links {
+		return sql
+	} else {
+		m.sql.WriteString(sql)
+	}
+	return ""
 }
 
-func (m *SelectBuilder) NotBetween(column string, value BetweenInfo) *SelectBuilder {
+func (m *SelectBuilder) NotBetween(column string, value BetweenInfo) string {
 	if &value == nil || value.Left == nil || value.Left == "" || value.Right == nil || value.Right == "" {
-		return m
+		return ""
 	}
-	m.sql.WriteString(fmt.Sprintf(" and %s not between ? and ? ", column))
+	sql := fmt.Sprintf(" %s %s not between ? and ? ", m.link, column)
 	m.values = append(m.values, value.Left, value.Right)
+	if m.links {
+		return sql
+	} else {
+		m.sql.WriteString(sql)
+	}
+	return ""
+}
+
+func (m *SelectBuilder) Like(column string, value interface{}) string {
+	if value == nil || value == "" {
+		return ""
+	}
+	sql := fmt.Sprintf(" %s %s like CONCAT('%s', ?, '%s') ", m.link, column, "%", "%")
+	m.values = append(m.values, value)
+	if m.links {
+		return sql
+	} else {
+		m.sql.WriteString(sql)
+	}
+	return ""
+}
+
+func (m *SelectBuilder) NotLike(column string, value interface{}) string {
+	if value == nil || value == "" {
+		return ""
+	}
+	sql := fmt.Sprintf(" %s %s not like CONCAT('%s', ?, '%s') ", m.link, column, "%", "%")
+	m.values = append(m.values, value)
+	if m.links {
+		return sql
+	} else {
+		m.sql.WriteString(sql)
+	}
+	return ""
+}
+
+func (m *SelectBuilder) LikeLeft(column string, value interface{}) string {
+	if value == nil || value == "" {
+		return ""
+	}
+	sql := fmt.Sprintf(" %s %s not like CONCAT('%s', ?) ", m.link, column, "%")
+	m.values = append(m.values, value)
+	if m.links {
+		return sql
+	} else {
+		m.sql.WriteString(sql)
+	}
+	return ""
+}
+
+func (m *SelectBuilder) LikeRight(column string, value interface{}) string {
+	if value == nil || value == "" {
+		return ""
+	}
+	sql := fmt.Sprintf(" %s %s not like CONCAT(?, '%s') ", m.link, column, "%")
+	m.values = append(m.values, value)
+	if m.links {
+		return sql
+	} else {
+		m.sql.WriteString(sql)
+	}
+	return ""
+}
+
+func (m *SelectBuilder) And() *SelectBuilder {
+	m.link = "and"
 	return m
 }
 
-func (m *SelectBuilder) Like(column string, value interface{}) *SelectBuilder {
-	if value == nil || value == "" {
+func (m *SelectBuilder) Or() *SelectBuilder {
+	m.link = "or"
+	return m
+}
+
+func (m *SelectBuilder) Ands(sql ...string) *SelectBuilder {
+	if len(sql) > 0 {
 		return m
 	}
-	m.sql.WriteString(fmt.Sprintf(" and %s like CONCAT('%s', ?, '%s') ", column, "%", "%"))
-	m.values = append(m.values, value)
+	m.links = true
+	m.link = "and"
+	m.sql.WriteString(" and (")
+	for i, v := range sql {
+		if v == "" {
+			continue
+		}
+		if i == 0 {
+			v = strings.Replace(v, " and ", " ", 1)
+			v = strings.Replace(v, " or ", " ", 1)
+		}
+		m.sql.WriteString(fmt.Sprintf("(%s) ", v))
+	}
+	m.sql.WriteString(") ")
+	m.link = "and"
+	m.links = false
 	return m
 }
 
-func (m *SelectBuilder) NotLike(column string, value interface{}) *SelectBuilder {
-	if value == nil || value == "" {
+func (m *SelectBuilder) Ors(sql ...string) *SelectBuilder {
+	if len(sql) > 0 {
 		return m
 	}
-	m.sql.WriteString(fmt.Sprintf(" and %s not like CONCAT('%s', ?, '%s') ", column, "%", "%"))
-	m.values = append(m.values, value)
-	return m
-}
-
-func (m *SelectBuilder) LikeLeft(column string, value interface{}) *SelectBuilder {
-	if value == nil || value == "" {
-		return m
+	m.links = true
+	m.link = "or"
+	m.sql.WriteString(" or (")
+	for i, v := range sql {
+		if v == "" {
+			continue
+		}
+		if i == 0 {
+			if i == 0 {
+				v = strings.Replace(v, " and ", " ", 1)
+				v = strings.Replace(v, " or ", " ", 1)
+			}
+		}
+		m.sql.WriteString(fmt.Sprintf(" (%s) ", v))
 	}
-	m.sql.WriteString(fmt.Sprintf(" and %s not like CONCAT('%s', ?) ", column, "%"))
-	m.values = append(m.values, value)
+	m.sql.WriteString(") ")
+	m.link = "and"
+	m.links = false
 	return m
 }
 
-func (m *SelectBuilder) LikeRight(column string, value interface{}) *SelectBuilder {
-	if value == nil || value == "" {
-		return m
-	}
-	m.sql.WriteString(fmt.Sprintf(" and %s not like CONCAT(?, '%s') ", column, "%"))
-	m.values = append(m.values, value)
-	return m
-}
-
-func (m *SelectBuilder) Append(column string) *SelectBuilder {
-	m.sql.WriteString(" " + column)
+func (m *SelectBuilder) Append(sql string) *SelectBuilder {
+	m.sql.WriteString(" " + sql)
 	return m
 }
 
