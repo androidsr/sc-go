@@ -2,10 +2,12 @@ package sorm
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/androidsr/sc-go/sc"
+	"github.com/opentracing/opentracing-go/log"
 )
 
 type SelectBuilder struct {
@@ -147,6 +149,7 @@ func (m *SelectBuilder) Le(column string, value interface{}) string {
 }
 
 func (m *SelectBuilder) Between(column string, value BetweenInfo) string {
+	fmt.Println("111111111111111")
 	if &value == nil || value.Left == nil || value.Left == "" || value.Right == nil || value.Right == "" {
 		return ""
 	}
@@ -241,10 +244,12 @@ func (m *SelectBuilder) Or() *SelectBuilder {
 }
 
 func (m *SelectBuilder) Ands(sql ...string) *SelectBuilder {
-	if len(sql) > 0 {
+	if !m.links {
+		log.Error(errors.New("调用Ands方法时，需先调用Multiple方法进行多条件组装"))
+	}
+	if len(sql) == 0 {
 		return m
 	}
-	m.links = true
 	m.link = "and"
 	m.sql.WriteString(" and (")
 	for i, v := range sql {
@@ -252,10 +257,10 @@ func (m *SelectBuilder) Ands(sql ...string) *SelectBuilder {
 			continue
 		}
 		if i == 0 {
-			v = strings.Replace(v, " and ", " ", 1)
-			v = strings.Replace(v, " or ", " ", 1)
+			v = strings.Replace(v, " and ", "", 1)
+			v = strings.Replace(v, " or ", "", 1)
 		}
-		m.sql.WriteString(fmt.Sprintf("(%s) ", v))
+		m.sql.WriteString(fmt.Sprintf("%s ", v))
 	}
 	m.sql.WriteString(") ")
 	m.link = "and"
@@ -263,24 +268,33 @@ func (m *SelectBuilder) Ands(sql ...string) *SelectBuilder {
 	return m
 }
 
+func (m *SelectBuilder) Multiple() *SelectBuilder {
+	m.links = true
+	return m
+}
+
 func (m *SelectBuilder) Ors(sql ...string) *SelectBuilder {
-	if len(sql) > 0 {
+	if !m.links {
+		log.Error(errors.New("调用Ors方法时，需先调用Multiple方法进行多条件组装"))
+	}
+	if len(sql) == 0 {
+		m.links = false
 		return m
 	}
-	m.links = true
 	m.link = "or"
 	m.sql.WriteString(" or (")
 	for i, v := range sql {
 		if v == "" {
 			continue
 		}
+		fmt.Println(v)
 		if i == 0 {
 			if i == 0 {
-				v = strings.Replace(v, " and ", " ", 1)
-				v = strings.Replace(v, " or ", " ", 1)
+				v = strings.Replace(v, " and ", "", 1)
+				v = strings.Replace(v, " or ", "", 1)
 			}
 		}
-		m.sql.WriteString(fmt.Sprintf(" (%s) ", v))
+		m.sql.WriteString(fmt.Sprintf("%s ", v))
 	}
 	m.sql.WriteString(") ")
 	m.link = "and"
