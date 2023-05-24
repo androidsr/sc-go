@@ -77,7 +77,7 @@ func (m *Sorm) Exists(obj interface{}) bool {
 func (m *Sorm) GetCount(obj interface{}) int {
 	tableModel := GetField(obj, false)
 	condi := buildQuery(tableModel)
-	sql := fmt.Sprintf("select count(*) from %s where 1=1 %s", tableModel.TableName, condi)
+	sql := fmt.Sprintf("select count(*) from %s %s", tableModel.TableName, condi)
 	var count int
 	err := m.DB.Get(&count, sql, tableModel.values...)
 	if err != nil {
@@ -176,7 +176,7 @@ func updateSQL(tableModel *ModelInfo, condition ...string) string {
 			setValues = append(setValues, tableModel.values[i])
 		}
 	}
-	sql := fmt.Sprintf("update %s set %s where 1=1 %s", tableModel.TableName, sets.String()[:sets.Len()-1], conds.String())
+	sql := fmt.Sprintf("update %s set %s %s", tableModel.TableName, sets.String()[:sets.Len()-1], conds.String())
 	tableModel.values = append(setValues, condValues...)
 	return sql
 }
@@ -204,7 +204,7 @@ func deleteSQL(tableModel *ModelInfo) string {
 	for _, tag := range tableModel.tags {
 		condition.WriteString(fmt.Sprintf(" and %s = ? ", tag.Column))
 	}
-	sql := fmt.Sprintf("delete from %s where 1=1 %s", tableModel.TableName, condition.String())
+	sql := fmt.Sprintf("delete from %s %s", tableModel.TableName, condition.String())
 	return sql
 }
 
@@ -303,7 +303,7 @@ func (m *Sorm) SelectList(data interface{}, query interface{}, columns ...string
 	} else {
 		cols = strings.Join(columns, ", ")
 	}
-	sql := fmt.Sprintf("select %s from %s where 1=1 ", cols, tableModel.TableName)
+	sql := fmt.Sprintf("select %s from %s ", cols, tableModel.TableName)
 	condi := buildQuery(tableModel)
 	sql += condi
 	err := m.DB.Select(data, sql, tableModel.values...)
@@ -323,7 +323,7 @@ func (m *Sorm) SelectListTx(tx *sqlx.Tx, data interface{}, query interface{}, co
 	} else {
 		cols = strings.Join(columns, ", ")
 	}
-	sql := fmt.Sprintf("select %s from %s where 1=1 ", cols, tableModel.TableName)
+	sql := fmt.Sprintf("select %s from %s ", cols, tableModel.TableName)
 	condi := buildQuery(tableModel)
 	sql += condi
 	err := tx.Select(data, sql, tableModel.values...)
@@ -343,7 +343,7 @@ func (m *Sorm) SelectOne(data interface{}, query interface{}, columns ...string)
 	} else {
 		cols = strings.Join(columns, ", ")
 	}
-	sql := fmt.Sprintf("select %s from %s where 1=1 ", cols, tableModel.TableName)
+	sql := fmt.Sprintf("select %s from %s ", cols, tableModel.TableName)
 	condi := buildQuery(tableModel)
 	sql += condi
 	printSQL(sql, tableModel.values...)
@@ -364,7 +364,7 @@ func (m *Sorm) GetOne(data interface{}, columns ...string) error {
 	} else {
 		cols = strings.Join(columns, ", ")
 	}
-	sql := fmt.Sprintf("select %s from %s where 1=1 ", cols, tableModel.TableName)
+	sql := fmt.Sprintf("select %s from %s ", cols, tableModel.TableName)
 	condi := buildQuery(tableModel)
 	sql += condi
 	printSQL(sql, tableModel.values...)
@@ -385,7 +385,7 @@ func (m *Sorm) SelectOneTx(tx *sqlx.Tx, data interface{}, query interface{}, col
 	} else {
 		cols = strings.Join(columns, ", ")
 	}
-	sql := fmt.Sprintf("select %s from %s where 1=1 ", cols, tableModel.TableName)
+	sql := fmt.Sprintf("select %s from %s ", cols, tableModel.TableName)
 	condi := buildQuery(tableModel)
 	sql += condi
 	printSQL(sql, tableModel.values...)
