@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/androidsr/sc-go/sc"
 	"github.com/opentracing/opentracing-go/log"
 )
 
@@ -58,31 +59,36 @@ func (m *SelectBuilder) Ne(column string, value interface{}) string {
 	return ""
 }
 
-func (m *SelectBuilder) In(column string, value []interface{}) string {
-	if value == nil || len(value) == 0 {
+func (m *SelectBuilder) In(column string, value interface{}) string {
+	if value == nil {
 		return ""
 	}
-
-	sql := fmt.Sprintf(" %s %s in(%s) ", m.link, column, Placeholders(len(value)))
-	m.values = append(m.values, value...)
-	if m.links {
-		return sql
-	} else {
-		m.sql.WriteString(sql)
+	v := sc.AssertSliceType(value)
+	if v != nil {
+		sql := fmt.Sprintf(" %s %s in(%s) ", m.link, column, Placeholders(len(v)))
+		m.values = append(m.values, v...)
+		if m.links {
+			return sql
+		} else {
+			m.sql.WriteString(sql)
+		}
 	}
 	return ""
 }
 
-func (m *SelectBuilder) NotIn(column string, value []interface{}) string {
-	if value == nil || len(value) == 0 {
+func (m *SelectBuilder) NotIn(column string, value interface{}) string {
+	if value == nil {
 		return ""
 	}
-	sql := fmt.Sprintf(" %s %s not in(%s) ", m.link, column, Placeholders(len(value)))
-	m.values = append(m.values, value...)
-	if m.links {
-		return sql
-	} else {
-		m.sql.WriteString(sql)
+	v := sc.AssertSliceType(value)
+	if v != nil {
+		sql := fmt.Sprintf(" %s %s not in(%s) ", m.link, column, Placeholders(len(v)))
+		m.values = append(m.values, v...)
+		if m.links {
+			return sql
+		} else {
+			m.sql.WriteString(sql)
+		}
 	}
 	return ""
 }

@@ -168,9 +168,37 @@ func AssertSliceType(value interface{}) []interface{} {
 	if okInt {
 		return SliceToInterface(vInt)
 	}
+	vInt8, okInt8 := value.([]int8)
+	if okInt8 {
+		return SliceToInterface(vInt8)
+	}
+	vInt16, okInt16 := value.([]int16)
+	if okInt16 {
+		return SliceToInterface(vInt16)
+	}
+	vInt32, okInt32 := value.([]int32)
+	if okInt32 {
+		return SliceToInterface(vInt32)
+	}
 	vInt64, okInt64 := value.([]int64)
 	if okInt64 {
 		return SliceToInterface(vInt64)
+	}
+	vuInt8, okuInt8 := value.([]uint8)
+	if okuInt8 {
+		return SliceToInterface(vuInt8)
+	}
+	vuInt16, okuInt16 := value.([]uint16)
+	if okuInt16 {
+		return SliceToInterface(vuInt16)
+	}
+	vuInt32, okuInt32 := value.([]uint32)
+	if okuInt32 {
+		return SliceToInterface(vuInt32)
+	}
+	vuInt64, okuInt64 := value.([]uint64)
+	if okuInt64 {
+		return SliceToInterface(vuInt64)
 	}
 	vBool, okBool := value.([]bool)
 	if okBool {
@@ -184,9 +212,17 @@ func AssertSliceType(value interface{}) []interface{} {
 	if okF64 {
 		return SliceToInterface(vF64)
 	}
+	vComplex64, okComplex64 := value.([]complex64)
+	if okComplex64 {
+		return SliceToInterface(vComplex64)
+	}
+	vComplex128, okComplex128 := value.([]complex128)
+	if okComplex128 {
+		return SliceToInterface(vComplex128)
+	}
 	inter, interOk := value.([]interface{})
 	if interOk {
 		return SliceToInterface(inter)
 	}
-	return []interface{}{value}
+	return nil
 }
