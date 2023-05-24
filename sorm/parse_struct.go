@@ -121,7 +121,7 @@ type BetweenInfo struct {
 }
 
 func buildQuery(tableModel *ModelInfo) string {
-	builder := Builder(" ")
+	builder := Builder("")
 	for i, tag := range tableModel.tags {
 		keyword := tag.Keyword
 		switch keyword.Type {

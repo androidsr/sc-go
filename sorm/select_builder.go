@@ -23,8 +23,10 @@ func Builder(sql string) *SelectBuilder {
 	builder.link = "and"
 	builder.links = false
 	builder.values = make([]interface{}, 0)
-	if !strings.Contains(sql, " where ") {
-		builder.sql.WriteString(" where 1=1 ")
+	if sql != "" {
+		if !strings.Contains(sql, " where ") {
+			builder.sql.WriteString(" where 1=1 ")
+		}
 	}
 	return builder
 }
