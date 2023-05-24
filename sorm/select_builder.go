@@ -80,7 +80,9 @@ func (m *SelectBuilder) NotIn(column string, value interface{}) string {
 	if value == nil {
 		return ""
 	}
+	fmt.Println(v)
 	v := sc.AssertSliceType(value)
+	fmt.Println(v)
 	if v != nil {
 		sql := fmt.Sprintf(" %s %s not in(%s) ", m.link, column, Placeholders(len(v)))
 		m.values = append(m.values, v...)
