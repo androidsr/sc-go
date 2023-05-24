@@ -63,8 +63,9 @@ func (m *SelectBuilder) In(column string, value interface{}) string {
 	if value == nil || value == "" {
 		return ""
 	}
+	fmt.Println("执行了in..")
 	v := sc.AssertSliceType(value)
-	if len(v) != 0 {
+	if len(v) != 0 && v[0] != nil && v[0] != "" {
 		sql := fmt.Sprintf(" %s %s in(%s) ", m.link, column, Placeholders(len(v)))
 		m.values = append(m.values, v...)
 		if m.links {
@@ -73,7 +74,6 @@ func (m *SelectBuilder) In(column string, value interface{}) string {
 			m.sql.WriteString(sql)
 		}
 	}
-
 	return ""
 }
 
@@ -82,7 +82,7 @@ func (m *SelectBuilder) NotIn(column string, value interface{}) string {
 		return ""
 	}
 	v := sc.AssertSliceType(value)
-	if len(v) != 0 {
+	if len(v) != 0 && v[0] != nil && v[0] != "" {
 		sql := fmt.Sprintf(" %s %s not in(%s) ", m.link, column, Placeholders(len(v)))
 		m.values = append(m.values, v...)
 		if m.links {
@@ -151,7 +151,6 @@ func (m *SelectBuilder) Le(column string, value interface{}) string {
 }
 
 func (m *SelectBuilder) Between(column string, value BetweenInfo) string {
-	fmt.Println("111111111111111")
 	if &value == nil || value.Left == nil || value.Left == "" || value.Right == nil || value.Right == "" {
 		return ""
 	}
@@ -285,7 +284,7 @@ func (m *SelectBuilder) Ors(sql ...string) *SelectBuilder {
 		m.links = false
 		return m
 	}
-	fmt.Println("执行了or", len(sql))
+	fmt.Println("执行了or", len(sql), sql)
 	m.link = "or"
 	m.sql.WriteString(" or (")
 	for i, v := range sql {
