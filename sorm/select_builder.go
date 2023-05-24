@@ -64,9 +64,7 @@ func (m *SelectBuilder) In(column string, value interface{}) string {
 		return ""
 	}
 	v := sc.AssertSliceType(value)
-	fmt.Println(column, value, v)
 	if len(v) != 0 {
-		fmt.Println("执行了in")
 		sql := fmt.Sprintf(" %s %s in(%s) ", m.link, column, Placeholders(len(v)))
 		m.values = append(m.values, v...)
 		if m.links {
@@ -75,7 +73,6 @@ func (m *SelectBuilder) In(column string, value interface{}) string {
 			m.sql.WriteString(sql)
 		}
 	}
-	fmt.Println("in 结束 ")
 	return ""
 }
 
@@ -250,7 +247,7 @@ func (m *SelectBuilder) Ands(sql ...string) *SelectBuilder {
 	if !m.links {
 		log.Error(errors.New("调用Ands方法时，需先调用Multiple方法进行多条件组装"))
 	}
-	if len(sql) == 0 {
+	if len(sql) == 0 || len(sql[0]) == 0 {
 		return m
 	}
 	m.link = "and"
@@ -281,14 +278,14 @@ func (m *SelectBuilder) Ors(sql ...string) *SelectBuilder {
 	if !m.links {
 		log.Error(errors.New("调用Ors方法时，需先调用Multiple方法进行多条件组装"))
 	}
-	if len(sql) == 0 {
+	if len(sql) == 0 || len(sql[0]) == 0 {
 		m.links = false
 		return m
 	}
 	m.link = "or"
 	m.sql.WriteString(" or (")
 	for i, v := range sql {
-		fmt.Println("执行or")
+		fmt.Println("执行or", v)
 		if v == "" {
 			continue
 		}
