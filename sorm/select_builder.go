@@ -249,6 +249,7 @@ func (m *SelectBuilder) Ands(sql ...string) *SelectBuilder {
 	if !m.links {
 		log.Error(errors.New("调用Ands方法时，需先调用Multiple方法进行多条件组装"))
 	}
+	fmt.Println(sql)
 	if len(sql) == 0 {
 		return m
 	}
@@ -279,6 +280,7 @@ func (m *SelectBuilder) Ors(sql ...string) *SelectBuilder {
 	if !m.links {
 		log.Error(errors.New("调用Ors方法时，需先调用Multiple方法进行多条件组装"))
 	}
+	fmt.Println(sql)
 	if len(sql) == 0 {
 		m.links = false
 		return m
