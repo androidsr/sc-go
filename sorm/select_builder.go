@@ -66,6 +66,7 @@ func (m *SelectBuilder) In(column string, value interface{}) string {
 	fmt.Println("执行了in..")
 	v := sc.AssertSliceType(value)
 	if len(v) != 0 && v[0] != nil && v[0] != "" {
+		fmt.Println("进入了in")
 		sql := fmt.Sprintf(" %s %s in(%s) ", m.link, column, Placeholders(len(v)))
 		m.values = append(m.values, v...)
 		if m.links {
@@ -280,7 +281,7 @@ func (m *SelectBuilder) Ors(sql ...string) *SelectBuilder {
 		log.Error(errors.New("调用Ors方法时，需先调用Multiple方法进行多条件组装"))
 	}
 	fmt.Println(sql)
-	if len(sql) == 0 {
+	if len(sql) == 0 || sql[0] == "" {
 		m.links = false
 		return m
 	}
