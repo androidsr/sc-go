@@ -65,6 +65,7 @@ func (m *SelectBuilder) In(column string, value interface{}) string {
 	}
 	v := sc.AssertSliceType(value)
 	if len(v) != 0 {
+		fmt.Println("执行了in")
 		sql := fmt.Sprintf(" %s %s in(%s) ", m.link, column, Placeholders(len(v)))
 		m.values = append(m.values, v...)
 		if m.links {
@@ -253,6 +254,7 @@ func (m *SelectBuilder) Ands(sql ...string) *SelectBuilder {
 	m.link = "and"
 	m.sql.WriteString(" and (")
 	for i, v := range sql {
+		fmt.Println("执行and")
 		if v == "" {
 			continue
 		}
@@ -284,6 +286,7 @@ func (m *SelectBuilder) Ors(sql ...string) *SelectBuilder {
 	m.link = "or"
 	m.sql.WriteString(" or (")
 	for i, v := range sql {
+		fmt.Println("执行or")
 		if v == "" {
 			continue
 		}
