@@ -80,7 +80,7 @@ func (m *SelectBuilder) NotIn(column string, value interface{}) string {
 	if value == nil {
 		return ""
 	}
-	fmt.Println(v)
+	fmt.Println(value)
 	v := sc.AssertSliceType(value)
 	fmt.Println(v)
 	if v != nil {
