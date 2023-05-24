@@ -285,6 +285,7 @@ func (m *SelectBuilder) Ors(sql ...string) *SelectBuilder {
 		m.links = false
 		return m
 	}
+	fmt.Println("执行了or", len(sql))
 	m.link = "or"
 	m.sql.WriteString(" or (")
 	for i, v := range sql {
