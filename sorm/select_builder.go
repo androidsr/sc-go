@@ -64,6 +64,7 @@ func (m *SelectBuilder) In(column string, value interface{}) string {
 		return ""
 	}
 	v := sc.AssertSliceType(value)
+	fmt.Println(column, value, v)
 	if len(v) != 0 {
 		fmt.Println("执行了in")
 		sql := fmt.Sprintf(" %s %s in(%s) ", m.link, column, Placeholders(len(v)))
@@ -74,6 +75,7 @@ func (m *SelectBuilder) In(column string, value interface{}) string {
 			m.sql.WriteString(sql)
 		}
 	}
+	fmt.Println("in 结束 ")
 	return ""
 }
 
