@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/androidsr/sc-go/sc"
 	"github.com/opentracing/opentracing-go/log"
 )
 
@@ -59,36 +58,31 @@ func (m *SelectBuilder) Ne(column string, value interface{}) string {
 	return ""
 }
 
-func (m *SelectBuilder) In(column string, value interface{}) string {
-	if value == nil || value == "" {
+func (m *SelectBuilder) In(column string, value []interface{}) string {
+	if value == nil || len(value) == 0 {
 		return ""
 	}
-	v := sc.AssertSliceType(value)
-	if len(v) != 0 && v[0] != nil && v[0] != "" {
-		sql := fmt.Sprintf(" %s %s in(%s) ", m.link, column, Placeholders(len(v)))
-		m.values = append(m.values, v...)
-		if m.links {
-			return sql
-		} else {
-			m.sql.WriteString(sql)
-		}
+
+	sql := fmt.Sprintf(" %s %s in(%s) ", m.link, column, Placeholders(len(value)))
+	m.values = append(m.values, value...)
+	if m.links {
+		return sql
+	} else {
+		m.sql.WriteString(sql)
 	}
 	return ""
 }
 
-func (m *SelectBuilder) NotIn(column string, value interface{}) string {
-	if value == nil || value == "" {
+func (m *SelectBuilder) NotIn(column string, value []interface{}) string {
+	if value == nil || len(value) == 0 {
 		return ""
 	}
-	v := sc.AssertSliceType(value)
-	if len(v) != 0 && v[0] != nil && v[0] != "" {
-		sql := fmt.Sprintf(" %s %s not in(%s) ", m.link, column, Placeholders(len(v)))
-		m.values = append(m.values, v...)
-		if m.links {
-			return sql
-		} else {
-			m.sql.WriteString(sql)
-		}
+	sql := fmt.Sprintf(" %s %s not in(%s) ", m.link, column, Placeholders(len(value)))
+	m.values = append(m.values, value...)
+	if m.links {
+		return sql
+	} else {
+		m.sql.WriteString(sql)
 	}
 	return ""
 }
@@ -247,7 +241,7 @@ func (m *SelectBuilder) Ands(sql ...string) *SelectBuilder {
 	if !m.links {
 		log.Error(errors.New("调用Ands方法时，需先调用Multiple方法进行多条件组装"))
 	}
-	if len(sql) == 0 || sql[0] == "" {
+	if len(sql) == 0 {
 		return m
 	}
 	m.link = "and"
@@ -277,7 +271,7 @@ func (m *SelectBuilder) Ors(sql ...string) *SelectBuilder {
 	if !m.links {
 		log.Error(errors.New("调用Ors方法时，需先调用Multiple方法进行多条件组装"))
 	}
-	if len(sql) == 0 || sql[0] == "" {
+	if len(sql) == 0 {
 		m.links = false
 		return m
 	}
