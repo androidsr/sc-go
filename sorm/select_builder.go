@@ -64,9 +64,7 @@ func (m *SelectBuilder) In(column string, value interface{}) string {
 		return ""
 	}
 	v := sc.AssertSliceType(value)
-	fmt.Println("执行了in", v, len(v))
-	if v != nil {
-		fmt.Println("进入条件")
+	if len(v) != 0 {
 		sql := fmt.Sprintf(" %s %s in(%s) ", m.link, column, Placeholders(len(v)))
 		m.values = append(m.values, v...)
 		if m.links {
@@ -83,8 +81,7 @@ func (m *SelectBuilder) NotIn(column string, value interface{}) string {
 		return ""
 	}
 	v := sc.AssertSliceType(value)
-	fmt.Println(v)
-	if v != nil {
+	if len(v) != 0 {
 		sql := fmt.Sprintf(" %s %s not in(%s) ", m.link, column, Placeholders(len(v)))
 		m.values = append(m.values, v...)
 		if m.links {
