@@ -56,7 +56,9 @@ func GetField(t interface{}, atFill bool) *ModelInfo {
 		if strings.ToLower(key) == "id" {
 			tableModel.PrimaryKey = key
 		}
-		fmt.Println(field.Type().Name(), field.Kind() == reflect.Ptr)
+		if field.Kind() == reflect.Ptr {
+			fmt.Println(field.IsValid(), field.IsNil())
+		}
 		if field.IsZero() || (field.Kind() == reflect.Ptr && !field.IsNil()) {
 			autoFunc := autoFill[key]
 			if autoFunc != nil && atFill {
