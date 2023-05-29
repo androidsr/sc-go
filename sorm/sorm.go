@@ -101,7 +101,7 @@ func (m *Sorm) SelectCount(sql string, values ...interface{}) int {
 }
 
 // 插入数据
-func (m *Sorm) Insert(obj interface{}) (int64, error) {
+func (m *Sorm) Insert(obj interface{}) error {
 	tableModel := GetField(obj, true)
 	sql := insertSQL(tableModel)
 	printSQL(sql, tableModel.values...)
@@ -110,7 +110,7 @@ func (m *Sorm) Insert(obj interface{}) (int64, error) {
 }
 
 // 插入数据（同一事物db）
-func (m *Sorm) InsertTx(db *sqlx.Tx, obj interface{}) (int64, error) {
+func (m *Sorm) InsertTx(db *sqlx.Tx, obj interface{}) error {
 	tableModel := GetField(obj, true)
 	sql := insertSQL(tableModel)
 	printSQL(sql, tableModel.values...)
@@ -130,7 +130,7 @@ func insertSQL(tableModel *ModelInfo) string {
 }
 
 // 按ID更新非空字段
-func (m *Sorm) UpdateById(obj interface{}) (int64, error) {
+func (m *Sorm) UpdateById(obj interface{}) error {
 	tableModel := GetField(obj, true)
 	sql := updateSQL(tableModel, tableModel.PrimaryKey)
 	printSQL(sql, tableModel.values...)
@@ -139,9 +139,9 @@ func (m *Sorm) UpdateById(obj interface{}) (int64, error) {
 }
 
 // 更新数据（指定条件列）
-func (m *Sorm) Update(obj interface{}, condition ...string) (int64, error) {
+func (m *Sorm) Update(obj interface{}, condition ...string) error {
 	if len(condition) == 0 {
-		return 0, errors.New("更新语句条件为空")
+		return errors.New("更新语句条件为空")
 	}
 	tableModel := GetField(obj, true)
 	sql := updateSQL(tableModel, condition...)
@@ -151,9 +151,9 @@ func (m *Sorm) Update(obj interface{}, condition ...string) (int64, error) {
 }
 
 // 更新数据（指定条件列，同一事物db）
-func (m *Sorm) UpdateTx(db *sqlx.Tx, obj interface{}, condition ...string) (int64, error) {
+func (m *Sorm) UpdateTx(db *sqlx.Tx, obj interface{}, condition ...string) error {
 	if len(condition) == 0 {
-		return 0, errors.New("更新语句条件为空")
+		return errors.New("更新语句条件为空")
 	}
 	tableModel := GetField(obj, true)
 	sql := updateSQL(tableModel, condition...)
@@ -182,7 +182,7 @@ func updateSQL(tableModel *ModelInfo, condition ...string) string {
 }
 
 // 删除数据
-func (m *Sorm) Delete(obj interface{}) (int64, error) {
+func (m *Sorm) Delete(obj interface{}) error {
 	tableModel := GetField(obj, false)
 	sql := deleteSQL(tableModel)
 	printSQL(sql, tableModel.values...)
@@ -191,7 +191,7 @@ func (m *Sorm) Delete(obj interface{}) (int64, error) {
 }
 
 // 删除数据（同一事务db）
-func (m *Sorm) DeleteTx(db *sqlx.Tx, obj interface{}) (int64, error) {
+func (m *Sorm) DeleteTx(db *sqlx.Tx, obj interface{}) error {
 	tableModel := GetField(obj, false)
 	sql := deleteSQL(tableModel)
 	printSQL(sql, tableModel.values...)
@@ -404,15 +404,15 @@ func printSQL(sql string, values ...interface{}) {
 }
 
 // 获取SQL执行影响行数
-func getAffectedRow(ret sql.Result, err error) (int64, error) {
+func getAffectedRow(ret sql.Result, err error) error {
 	if err != nil {
 		log.Printf("SQL ERROR: %v", err)
-		return 0, err
+		return err
 	}
-	n, err := ret.RowsAffected()
+	_, err = ret.RowsAffected()
 	if err != nil {
 		log.Printf("SQL ERROR: %v", err)
-		return 0, err
+		return err
 	}
-	return n, nil
+	return nil
 }
