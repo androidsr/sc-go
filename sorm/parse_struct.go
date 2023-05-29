@@ -85,7 +85,7 @@ func GetField(t interface{}, atFill bool) *ModelInfo {
 			kTag.Column = key
 		}
 		switch field.Kind() {
-		case reflect.String | reflect.Ptr:
+		case reflect.String:
 			tableModel.values = append(tableModel.values, field.String())
 		case reflect.Int64 | reflect.Int32:
 			tableModel.values = append(tableModel.values, field.Int())
@@ -93,6 +93,8 @@ func GetField(t interface{}, atFill bool) *ModelInfo {
 			tableModel.values = append(tableModel.values, field.Float())
 		case reflect.Bool:
 			tableModel.values = append(tableModel.values, field.Bool())
+		case reflect.Ptr:
+			tableModel.values = append(tableModel.values, field.Elem().Interface())
 		default:
 			continue
 		}
