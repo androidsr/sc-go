@@ -1,6 +1,7 @@
 package sorm
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -55,7 +56,8 @@ func GetField(t interface{}, atFill bool) *ModelInfo {
 		if strings.ToLower(key) == "id" {
 			tableModel.PrimaryKey = key
 		}
-		if field.IsZero() || (field.Kind() == reflect.Ptr && !field.IsNil()) {
+		fmt.Println(field.Type().Name(), field.Kind() == reflect.Ptr, field.IsNil())
+		if field.IsZero() || (field.Kind() == reflect.Ptr && field.IsNil()) {
 			autoFunc := autoFill[key]
 			if autoFunc != nil && atFill {
 				val := autoFunc()
