@@ -12,6 +12,10 @@ import (
 	"github.com/jinzhu/copier"
 )
 
+var (
+	CstZone = time.FixedZone("CST", 8*3600)
+)
+
 // 判断切片中是否包含指定值
 func Contains(slice []string, value string) bool {
 	for _, v := range slice {
@@ -37,61 +41,60 @@ func GetUnderscore(s string) string {
 }
 
 func GetDateTime() time.Time {
-	return time.Now().Local()
+	return time.Now().In(CstZone)
 }
 
 func FormatDateString(t time.Time) string {
-	return t.Local().Format("2006-01-02")
+	return t.In(CstZone).Format("2006-01-02")
 }
 
 func FormatTimeString(t time.Time) string {
-
-	return t.Local().Format("15:04:05")
+	return t.In(CstZone).Format("15:04:05")
 }
 
 func FormatDateTimeString(t time.Time) string {
-	return t.Local().Format("2006-01-02 15:04:05")
+	return t.In(CstZone).Format("2006-01-02 15:04:05")
 }
 
 func FormatDateStringNumber(t time.Time) string {
-	return t.Local().Format("20060102")
+	return t.In(CstZone).Format("20060102")
 }
 
 func FormatTimeStringNumber(t time.Time) string {
-	return t.Local().Format("150405")
+	return t.In(CstZone).Format("150405")
 }
 
 func FormatDateTimeStringNumber(t time.Time) string {
-	return t.Local().Format("20060102150405")
+	return t.In(CstZone).Format("20060102150405")
 }
 
 func ParseDate(ymd_ string) time.Time {
-	t, _ := time.Parse("2006-01-02", ymd_)
-	return t.Local()
+	t, _ := time.ParseInLocation("2006-01-02", ymd_, CstZone)
+	return t
 }
 
 func ParseTime(hms_ string) time.Time {
-	t, _ := time.Parse("15:04:05", hms_)
-	return t.Local()
+	t, _ := time.ParseInLocation("15:04:05", hms_, CstZone)
+	return t.In(CstZone)
 }
 
 func ParseDateTime(ymd_ string) time.Time {
-	t, _ := time.Parse("2006-01-02 15:04:05", ymd_)
-	return t.Local()
+	t, _ := time.ParseInLocation("2006-01-02 15:04:05", ymd_, CstZone)
+	return t.In(CstZone)
 }
 
 func ParseDateNumber(ymd string) time.Time {
-	t, _ := time.Parse("20060102", ymd)
-	return t.Local()
+	t, _ := time.ParseInLocation("20060102", ymd, CstZone)
+	return t.In(CstZone)
 }
 
 func ParseTimeNumber(hms string) time.Time {
-	t, _ := time.Parse("150405", hms)
-	return t.Local()
+	t, _ := time.ParseInLocation("150405", hms, CstZone)
+	return t.In(CstZone)
 }
 
 func ParseDateTimeNumber(ymd string) time.Time {
-	t, _ := time.Parse("20060102150405", ymd)
+	t, _ := time.ParseInLocation("20060102150405", ymd, CstZone)
 	return t
 }
 
