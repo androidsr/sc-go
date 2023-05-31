@@ -27,8 +27,8 @@ func New(cfg *syaml.WebTokenInfo) {
 
 // 生成 Token
 func GenerateToken(data jwt.MapClaims) (tokenString string, err error) {
-	data["notBefore"] = sc.FormatDateTimeString(time.Now())
-	data["expiresAt"] = sc.FormatDateTimeString(time.Now().Add(time.Duration(config.Expire) * time.Minute))
+	data["notBefore"] = sc.FormatDateTimeString(time.Now().Local())
+	data["expiresAt"] = sc.FormatDateTimeString(time.Now().Add(time.Duration(config.Expire) * time.Minute).Local())
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, data)
 	tokenString, err = token.SignedString([]byte(config.SecretKey))
 	return
@@ -108,7 +108,7 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 			case 1:
 				c.Writer.Header().Set(config.TokenName, tokenStr)
 			case 2:
-				c.SetCookie(config.TokenName, tokenStr, config.Expire*60, "/", "localhost", false, true)
+				c.SetCookie(config.TokenName, tokenStr, config.Expire*60, "", "", false, true)
 			case 3:
 				return
 			}
