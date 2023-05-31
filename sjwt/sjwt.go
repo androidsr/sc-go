@@ -2,7 +2,6 @@ package sjwt
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -100,9 +99,6 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 		}
 
 		expiresAt := sc.ParseDateTime(e)
-		fmt.Println(expiresAt, sc.FormatDateTimeString(expiresAt))
-		fmt.Println(time.Now(), sc.FormatDateTimeString(time.Now()))
-		log.Println(expiresAt.Sub(time.Now().Local()).Minutes())
 		if expiresAt.Sub(time.Now().Local()).Minutes() <= float64(config.Expire/3) {
 			log.Println("刷新token")
 			// 如果快要过期，则刷新JWT令牌
