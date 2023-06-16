@@ -3,6 +3,7 @@ package sleveldb
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/syndtr/goleveldb/leveldb"
 )
@@ -38,6 +39,22 @@ func Read[T any]() []*T {
 	iter := db.NewIterator(nil, nil)
 	var datas []*T
 	for iter.Next() {
+		bs := iter.Value()
+		data := new(T)
+		json.Unmarshal(bs, data)
+		datas = append(datas, data)
+	}
+	return datas
+}
+
+func ReadPrefix[T any](key string) []*T {
+	iter := db.NewIterator(nil, nil)
+	var datas []*T
+	for iter.Next() {
+		ky := iter.Key()
+		if !strings.HasPrefix(string(ky), key) {
+			continue
+		}
 		bs := iter.Value()
 		data := new(T)
 		json.Unmarshal(bs, data)
