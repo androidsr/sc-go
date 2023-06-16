@@ -66,6 +66,9 @@ func (m *Wsocket) Register(w http.ResponseWriter, r *http.Request) error {
 
 func (m *Wsocket) handler(userId string, client *websocket.Conn) {
 	defer func() {
+		recover()
+	}()
+	defer func() {
 		if userId != "" {
 			delete(m.clients, userId)
 		}
