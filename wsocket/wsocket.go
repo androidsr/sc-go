@@ -94,7 +94,7 @@ func (m *Wsocket) handler(userId string, client *websocket.Conn) {
 		_, message, err := client.ReadMessage()
 		if err != nil {
 			log.Println("读取WebSocket消息时发生错误：", err)
-			continue
+			break
 		}
 		maxNotPing = 0
 		if string(message) != "ping" {
