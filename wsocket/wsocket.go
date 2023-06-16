@@ -42,6 +42,11 @@ type Wsocket struct {
 	Interval   time.Duration
 }
 
+// 获取在线客户端数量
+func (m *Wsocket) GetSize() int {
+	return len(m.clientList) + len(m.clients)
+}
+
 // 绑定客户端
 func (m *Wsocket) Register(w http.ResponseWriter, r *http.Request) error {
 	client, err := m.upgrader.Upgrade(w, r, nil)
