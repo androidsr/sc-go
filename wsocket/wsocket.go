@@ -33,12 +33,13 @@ type Message struct {
 }
 
 type Wsocket struct {
-	upgrader websocket.Upgrader
-	clients  map[string]*websocket.Conn
-	user     UserInfo
-	Data     chan Message
-	PingFail int
-	Interval time.Duration
+	upgrader   websocket.Upgrader
+	clients    map[string]*websocket.Conn
+	clientList []*websocket.Conn
+	user       UserInfo
+	Data       chan Message
+	PingFail   int
+	Interval   time.Duration
 }
 
 // 绑定客户端
@@ -47,15 +48,22 @@ func (m *Wsocket) Register(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	userId := m.user(w, r)
-	m.clients[userId] = client
+	var userId string
+	if m.user != nil {
+		userId = m.user(w, r)
+		m.clients[userId] = client
+	} else {
+		m.clientList = make([]*websocket.Conn, 0)
+	}
 	go m.handler(userId, client)
 	return nil
 }
 
 func (m *Wsocket) handler(userId string, client *websocket.Conn) {
 	defer func() {
-		delete(m.clients, userId)
+		if userId != "" {
+			delete(m.clients, userId)
+		}
 		client.Close()
 	}()
 	maxNotPing := 0
@@ -87,9 +95,21 @@ func (m *Wsocket) handler(userId string, client *websocket.Conn) {
 	}
 }
 
+func (m *Wsocket) WriteString(key string, messageType int, message string) {
+	m.Write(key, messageType, []byte(message))
+}
+
 func (m *Wsocket) Write(key string, messageType int, message []byte) {
 	if key == "" {
 		for _, client := range m.clients {
+			err := client.WriteMessage(messageType, message)
+			if err != nil {
+				delete(m.clients, key)
+				client.Close()
+				continue
+			}
+		}
+		for _, client := range m.clientList {
 			err := client.WriteMessage(messageType, message)
 			if err != nil {
 				delete(m.clients, key)
@@ -111,6 +131,9 @@ func (m *Wsocket) Write(key string, messageType int, message []byte) {
 func (m *Wsocket) Close(key string) {
 	if key == "" {
 		for _, v := range m.clients {
+			v.Close()
+		}
+		for _, v := range m.clientList {
 			v.Close()
 		}
 	} else {
