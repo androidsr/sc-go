@@ -65,6 +65,16 @@ func (m *Wsocket) Register(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+func (m *Wsocket) removeElement(client *websocket.Conn) {
+	result := make([]*websocket.Conn, 0)
+	for _, item := range m.clientList {
+		if item != client {
+			result = append(result, item)
+		}
+	}
+	m.clientList = result
+}
+
 func (m *Wsocket) handler(userId string, client *websocket.Conn) {
 	defer func() {
 		recover()
@@ -72,6 +82,8 @@ func (m *Wsocket) handler(userId string, client *websocket.Conn) {
 	defer func() {
 		if userId != "" {
 			delete(m.clients, userId)
+		} else {
+			m.removeElement(client)
 		}
 		client.Close()
 	}()
