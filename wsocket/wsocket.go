@@ -23,6 +23,7 @@ func New(upgrader websocket.Upgrader, interval time.Duration, pingFail int, user
 	sSocket.user = user
 	sSocket.Interval = interval
 	sSocket.PingFail = pingFail
+	sSocket.clientList = make([]*websocket.Conn, 0)
 	Socket = sSocket
 	return sSocket
 }
@@ -58,7 +59,7 @@ func (m *Wsocket) Register(w http.ResponseWriter, r *http.Request) error {
 		userId = m.user(w, r)
 		m.clients[userId] = client
 	} else {
-		m.clientList = make([]*websocket.Conn, 0)
+		m.clientList = append(m.clientList, client)
 	}
 	go m.handler(userId, client)
 	return nil
