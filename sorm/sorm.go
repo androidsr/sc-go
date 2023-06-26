@@ -238,7 +238,7 @@ func (m *Sorm) SelectPage(data interface{}, sql string, page model.PageInfo, que
 				} else {
 					orderBy.WriteString("desc")
 				}
-				if i != len(page.Orders) {
+				if i != len(page.Orders)-1 {
 					orderBy.WriteString(", ")
 				}
 			}
@@ -282,7 +282,7 @@ func (m *Sorm) SelectListPage(data interface{}, page model.PageInfo, sql string,
 				} else {
 					orderBy.WriteString("desc")
 				}
-				if i != len(page.Orders) {
+				if i != len(page.Orders)-1 {
 					orderBy.WriteString(", ")
 				}
 			}
