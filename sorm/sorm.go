@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"reflect"
 	"strings"
 
 	"github.com/androidsr/sc-go/model"
@@ -55,7 +56,7 @@ func New(config *syaml.SqlxInfo) *Sorm {
 }
 
 // 自动填充处理
-type FillFunc func() any
+type FillFunc func() reflect.Value
 
 // 增加字段进行自动填充
 func AddAutoFill(column string, call FillFunc) {
