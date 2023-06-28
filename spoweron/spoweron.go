@@ -37,12 +37,12 @@ func (p *program) Stop(s service.Service) error {
 	return nil
 }
 
-func Run(callback Poweron) {
+func Run(name string, callback Poweron) {
 	wg.Add(1)
 	svcConfig := &service.Config{
-		Name:        "openstart-service",
-		DisplayName: "openstart-service",
-		Description: "openstart-service",
+		Name:        name + "-service",
+		DisplayName: name + "-service",
+		Description: name + "-service",
 	}
 	prg := &program{callback: callback}
 	s, err := service.New(prg, svcConfig)
