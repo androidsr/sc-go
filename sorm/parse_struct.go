@@ -63,7 +63,7 @@ func GetField(t interface{}, atFill bool) *ModelInfo {
 			autoFunc := autoFill[key]
 			if autoFunc != nil && atFill {
 				val := autoFunc()
-				if val == nil {
+				if val == nil || val == "" {
 					continue
 				}
 				field.Set(reflect.ValueOf(val))
