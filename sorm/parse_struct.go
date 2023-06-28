@@ -1,6 +1,7 @@
 package sorm
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -66,6 +67,7 @@ func GetField(t interface{}, atFill bool) *ModelInfo {
 				if val == nil || val == "" {
 					continue
 				}
+				fmt.Println("系统值:", val)
 				field.Set(reflect.ValueOf(val))
 			} else {
 				continue
