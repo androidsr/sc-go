@@ -4,23 +4,15 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/jmoiron/sqlx/reflectx"
-
 	"github.com/androidsr/sc-go/sc"
 )
 
-func baseType(t reflect.Type, expected reflect.Kind) reflect.Type {
-	t = reflectx.Deref(t)
-	if t.Kind() != expected {
-		return nil
-	}
-	return t
-}
-
 func GetField(t interface{}, atFill bool) *ModelInfo {
-	value := reflect.Indirect(reflect.ValueOf(t))
+	value := reflect.ValueOf(t)
 	vType := value.Type()
-	if value.Kind() == reflect.Slice {
+	if value.Kind() != reflect.Ptr {
+		value = reflect.ValueOf(&t).Elem()
+	} else if value.Kind() == reflect.Slice {
 		vType = value.Type().Elem()
 		value = reflect.New(vType).Elem()
 	}
@@ -66,7 +58,7 @@ func GetField(t interface{}, atFill bool) *ModelInfo {
 				if val == nil || val == "" {
 					continue
 				}
-				field.Set(reflect.ValueOf(val.(string)))
+				field.Set(reflect.ValueOf(val))
 			} else {
 				continue
 			}
