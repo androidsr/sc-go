@@ -56,21 +56,17 @@ func GetField(t interface{}, atFill bool) *ModelInfo {
 			tableModel.PrimaryKey = key
 		}
 		if field.Kind() == reflect.Ptr {
-			if !field.IsNil() {
+			if field.IsNil() {
 				continue
 			}
 		} else if field.IsZero() {
 			autoFunc := autoFill[key]
 			if autoFunc != nil && atFill {
 				val := autoFunc()
-				if val.Kind() == reflect.Ptr {
-					if val.IsNil() {
-						continue
-					}
-				} else if val.IsZero() {
+				if val == nil || val == "" {
 					continue
 				}
-				field.Set(val)
+				field.Set(reflect.ValueOf(val))
 			} else {
 				continue
 			}
