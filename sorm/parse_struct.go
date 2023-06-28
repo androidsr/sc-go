@@ -14,14 +14,15 @@ func GetField(t interface{}, atFill bool) *ModelInfo {
 	} else {
 		value = reflect.ValueOf(&t).Elem()
 	}
-	vType := reflect.Indirect(reflect.ValueOf(t))
+	tp := reflect.Indirect(reflect.ValueOf(t))
+	vType := tp.Type()
 	if value.Kind() == reflect.Slice {
-		vType = reflect.Indirect(reflect.ValueOf(t)).Elem()
+		vType = tp.Type().Elem()
 		value = reflect.New(vType).Elem()
 	}
 	tableModel := new(ModelInfo)
 	tableModel.values = make([]interface{}, 0)
-	tableModel.TableName = sc.GetUnderscore(value.Type().Name())
+	tableModel.TableName = sc.GetUnderscore(tp.Type().Name())
 	tableModel.tags = make([]TagInfo, 0)
 	for i := 0; i < vType.NumField(); i++ {
 		field := value.Field(i)
