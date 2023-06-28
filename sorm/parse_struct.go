@@ -1,7 +1,6 @@
 package sorm
 
 import (
-	"fmt"
 	"reflect"
 	"strings"
 
@@ -64,10 +63,9 @@ func GetField(t interface{}, atFill bool) *ModelInfo {
 			autoFunc := autoFill[key]
 			if autoFunc != nil && atFill {
 				val := autoFunc()
-				if val == nil || val == "" {
+				if val == nil {
 					continue
 				}
-				fmt.Println("系统值:", val)
 				field.Set(reflect.ValueOf(val))
 			} else {
 				continue
@@ -136,31 +134,39 @@ func buildQuery(tableModel *ModelInfo) string {
 		case Eq:
 			builder.Eq(keyword.Column, tableModel.values[i])
 		case Ne:
-			builder.Eq(keyword.Column, tableModel.values[i])
+			builder.Ne(keyword.Column, tableModel.values[i])
 		case In:
-			builder.Eq(keyword.Column, tableModel.values[i])
+			builder.In(keyword.Column, tableModel.values[i])
 		case NotIn:
-			builder.Eq(keyword.Column, tableModel.values[i])
+			builder.NotIn(keyword.Column, tableModel.values[i])
 		case Gt:
-			builder.Eq(keyword.Column, tableModel.values[i])
+			builder.Gt(keyword.Column, tableModel.values[i])
 		case Lt:
-			builder.Eq(keyword.Column, tableModel.values[i])
+			builder.Lt(keyword.Column, tableModel.values[i])
 		case Ge:
-			builder.Eq(keyword.Column, tableModel.values[i])
+			builder.Ge(keyword.Column, tableModel.values[i])
 		case Le:
-			builder.Eq(keyword.Column, tableModel.values[i])
+			builder.Le(keyword.Column, tableModel.values[i])
 		case Between:
-			builder.Eq(keyword.Column, tableModel.values[i])
+			value, ok := tableModel.values[i].(BetweenInfo)
+			if !ok {
+				break
+			}
+			builder.Between(keyword.Column, value)
 		case NotBetween:
-			builder.Eq(keyword.Column, tableModel.values[i])
+			value, ok := tableModel.values[i].(BetweenInfo)
+			if !ok {
+				break
+			}
+			builder.NotBetween(keyword.Column, value)
 		case Like:
-			builder.Eq(keyword.Column, tableModel.values[i])
+			builder.Like(keyword.Column, tableModel.values[i])
 		case NotLike:
-			builder.Eq(keyword.Column, tableModel.values[i])
+			builder.NotLike(keyword.Column, tableModel.values[i])
 		case LikeLeft:
-			builder.Eq(keyword.Column, tableModel.values[i])
+			builder.LikeLeft(keyword.Column, tableModel.values[i])
 		case LikeRight:
-			builder.Eq(keyword.Column, tableModel.values[i])
+			builder.LikeRight(keyword.Column, tableModel.values[i])
 		}
 	}
 	tableModel.values = builder.values
