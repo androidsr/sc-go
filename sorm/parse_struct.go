@@ -56,7 +56,7 @@ func GetField(t interface{}, atFill bool) *ModelInfo {
 			tableModel.PrimaryKey = key
 		}
 		if field.Kind() == reflect.Ptr {
-			if field.IsNil() {
+			if !field.IsNil() {
 				continue
 			}
 		} else if field.IsZero() {
@@ -67,7 +67,7 @@ func GetField(t interface{}, atFill bool) *ModelInfo {
 					if val.IsNil() {
 						continue
 					}
-				} else if !val.IsZero() {
+				} else if val.IsZero() {
 					continue
 				}
 				field.Set(val)
