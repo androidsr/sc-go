@@ -3,6 +3,7 @@ package spoweron
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/kardianos/service"
@@ -39,6 +40,17 @@ func (p *program) Stop(s service.Service) error {
 }
 
 func Run(name string, callback Poweron) {
+	executablePath, err := os.Executable()
+	if err != nil {
+		fmt.Println("无法获取可执行文件路径：", err)
+		return
+	}
+	executableDir := filepath.Dir(executablePath)
+	err = os.Chdir(executableDir)
+	if err != nil {
+		fmt.Println("切换当前工作目录错误：", err)
+		return
+	}
 	wg.Add(1)
 	svcConfig := &service.Config{
 		Name:        name + "-service",
