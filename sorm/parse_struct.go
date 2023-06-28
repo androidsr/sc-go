@@ -68,9 +68,8 @@ func GetField(t interface{}, atFill bool) *ModelInfo {
 				}
 				refVal := reflect.ValueOf(val)
 				if refVal.Kind() != reflect.Ptr {
-					refVal = refVal.Elem()
+					field.Set(refVal)
 				}
-				field.Set(refVal)
 			} else {
 				continue
 			}
