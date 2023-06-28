@@ -8,7 +8,12 @@ import (
 )
 
 func GetField(t interface{}, atFill bool) *ModelInfo {
-	value := reflect.Indirect(reflect.ValueOf(t))
+	var value reflect.Value
+	if reflect.ValueOf(t).Kind() == reflect.Ptr {
+		value = reflect.ValueOf(t).Elem()
+	} else {
+		value = reflect.ValueOf(&t).Elem()
+	}
 	vType := value.Type()
 	if value.Kind() == reflect.Slice {
 		vType = value.Type().Elem()
