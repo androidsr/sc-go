@@ -14,7 +14,7 @@ func GetField(t interface{}, atFill bool) *ModelInfo {
 	} else {
 		value = reflect.ValueOf(&t).Elem()
 	}
-	vType := value.Type()
+	vType := reflect.Indirect(reflect.ValueOf(t))
 	if value.Kind() == reflect.Slice {
 		vType = value.Type().Elem()
 		value = reflect.New(vType).Elem()
