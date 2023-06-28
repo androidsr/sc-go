@@ -68,7 +68,7 @@ func GetField(t interface{}, atFill bool) *ModelInfo {
 					continue
 				}
 				fmt.Println(key, val)
-				field.Set(reflect.ValueOf(&val).Elem())
+				field.Set(reflect.ValueOf(val))
 			} else {
 				continue
 			}
