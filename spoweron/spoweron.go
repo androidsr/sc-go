@@ -53,9 +53,9 @@ func Run(name string, callback Poweron) {
 	}
 	wg.Add(1)
 	svcConfig := &service.Config{
-		Name:        name + "-service",
-		DisplayName: name + "-service",
-		Description: name + "-service",
+		Name:        name,
+		DisplayName: name + " service",
+		Description: name + " service for golang",
 	}
 	prg := &program{callback: callback}
 	s, err := service.New(prg, svcConfig)
