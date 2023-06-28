@@ -8,21 +8,20 @@ import (
 )
 
 func GetField(t interface{}, atFill bool) *ModelInfo {
-	var value reflect.Value
-	if reflect.ValueOf(t).Kind() == reflect.Ptr {
-		value = reflect.ValueOf(t).Elem()
+	value := reflect.ValueOf(t)
+	if value.Kind() != reflect.Ptr {
+		value = reflect.Indirect(reflect.ValueOf(&t))
 	} else {
-		value = reflect.ValueOf(&t).Elem()
+		value = reflect.Indirect(reflect.ValueOf(t))
 	}
-	tp := reflect.Indirect(reflect.ValueOf(t))
-	vType := tp.Type()
+	vType := value.Type()
 	if value.Kind() == reflect.Slice {
-		vType = tp.Type().Elem()
+		vType = value.Type().Elem()
 		value = reflect.New(vType).Elem()
 	}
 	tableModel := new(ModelInfo)
 	tableModel.values = make([]interface{}, 0)
-	tableModel.TableName = sc.GetUnderscore(tp.Type().Name())
+	tableModel.TableName = sc.GetUnderscore(value.Type().Name())
 	tableModel.tags = make([]TagInfo, 0)
 	for i := 0; i < vType.NumField(); i++ {
 		field := value.Field(i)
@@ -39,7 +38,7 @@ func GetField(t interface{}, atFill bool) *ModelInfo {
 				ks := strings.Split(key, ",")
 				key = ks[0]
 				pk := ks[1]
-				if pk == "primary_key" || pk == "primaryKey" {
+				if pk == "primary_key" {
 					tableModel.PrimaryKey = key
 				}
 			}
