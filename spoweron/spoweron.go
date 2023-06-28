@@ -34,6 +34,7 @@ func (p *program) run() {
 
 func (p *program) Stop(s service.Service) error {
 	fmt.Println("退出应用程序")
+	os.Exit(0)
 	return nil
 }
 
