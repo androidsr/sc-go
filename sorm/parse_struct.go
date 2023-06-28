@@ -39,7 +39,7 @@ func GetField(t interface{}, atFill bool) *ModelInfo {
 				ks := strings.Split(key, ",")
 				key = ks[0]
 				pk := ks[1]
-				if pk == "primary_key" {
+				if pk == "primary_key" || pk == "primaryKey" {
 					tableModel.PrimaryKey = key
 				}
 			}
