@@ -165,11 +165,12 @@ func buildQuery(tableModel *ModelInfo) string {
 
 func Placeholders(n int) string {
 	var b strings.Builder
-	for i := 0; i < n-1; i++ {
-		b.WriteString("?,")
-	}
-	if n > 0 {
+	for i := 0; i < n; i++ {
 		b.WriteString("?")
+		if i != n-1 {
+			b.WriteString(", ")
+		}
 	}
+
 	return b.String()
 }
