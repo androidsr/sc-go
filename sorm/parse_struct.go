@@ -1,7 +1,6 @@
 package sorm
 
 import (
-	"fmt"
 	"reflect"
 	"strings"
 
@@ -67,8 +66,11 @@ func GetField(t interface{}, atFill bool) *ModelInfo {
 				if val == nil {
 					continue
 				}
-				fmt.Println(key, val, field.Type().Name())
-				field.Set(reflect.ValueOf(val))
+				refVal := reflect.ValueOf(val)
+				if refVal.Kind() != reflect.Ptr {
+					refVal = refVal.Elem()
+				}
+				field.Set(refVal)
 			} else {
 				continue
 			}
