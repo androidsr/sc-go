@@ -7,7 +7,7 @@ import (
 	"github.com/androidsr/sc-go/sc"
 )
 
-func GetField(t interface{}, atFill bool) *ModelInfo {
+func GetField(t interface{}, fillType int) *ModelInfo {
 	value := reflect.Indirect(reflect.ValueOf(t))
 	vType := value.Type()
 	if value.Kind() == reflect.Slice {
@@ -19,6 +19,7 @@ func GetField(t interface{}, atFill bool) *ModelInfo {
 	tableModel.TableName = sc.GetUnderscore(value.Type().Name())
 	tableModel.tags = make([]TagInfo, 0)
 	for i := 0; i < vType.NumField(); i++ {
+		tField := vType.Field(i)
 		field := value.Field(i)
 		tagItem := TagInfo{}
 		tag := vType.Field(i).Tag
@@ -33,13 +34,13 @@ func GetField(t interface{}, atFill bool) *ModelInfo {
 				ks := strings.Split(key, ",")
 				key = ks[0]
 				pk := ks[1]
-				if pk == "primary_key" {
+				if pk == "primary_key" || pk == "primaryKey" || pk == "pk" {
 					tableModel.PrimaryKey = key
 				}
 			}
 		}
 		if key == "" {
-			key = sc.GetUnderscore(vType.Name())
+			key = sc.GetUnderscore(tField.Name)
 		}
 		tagItem.Column = key
 		if strings.ToLower(key) == "id" {
@@ -47,19 +48,40 @@ func GetField(t interface{}, atFill bool) *ModelInfo {
 		}
 		if field.Kind() == reflect.Ptr {
 			if field.IsNil() {
-				continue
-			}
-		} else if field.IsZero() {
-			autoFunc := autoFill[key]
-			if autoFunc != nil && atFill {
+				var autoFunc FillFunc
+				if fillType == 1 {
+					autoFunc = insertFill[key]
+				} else if fillType == 2 {
+					autoFunc = updateFill[key]
+				} else {
+					continue
+				}
+				if autoFunc == nil {
+					continue
+				}
 				val := autoFunc()
 				if val == nil || val == "" {
 					continue
 				}
-				field.Set(reflect.ValueOf(val))
+				field.Set(reflect.ValueOf(&val))
+			}
+		} else if field.IsZero() {
+			var autoFunc FillFunc
+			if fillType == 1 {
+				autoFunc = insertFill[key]
+			} else if fillType == 2 {
+				autoFunc = updateFill[key]
 			} else {
 				continue
 			}
+			if autoFunc == nil {
+				continue
+			}
+			val := autoFunc()
+			if val == nil || val == "" {
+				continue
+			}
+			field.Set(reflect.ValueOf(val))
 		}
 
 		keyword := tag.Get("keyword")
@@ -77,7 +99,7 @@ func GetField(t interface{}, atFill bool) *ModelInfo {
 		switch field.Kind() {
 		case reflect.String:
 			tableModel.values = append(tableModel.values, field.String())
-		case reflect.Int64 | reflect.Int32:
+		case reflect.Int64 | reflect.Int32 | reflect.Int:
 			tableModel.values = append(tableModel.values, field.Int())
 		case reflect.Float32 | reflect.Float64:
 			tableModel.values = append(tableModel.values, field.Float())

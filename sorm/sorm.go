@@ -32,8 +32,9 @@ const (
 )
 
 var (
-	DB       *Sorm
-	autoFill map[string]FillFunc
+	DB         *Sorm
+	insertFill map[string]FillFunc
+	updateFill map[string]FillFunc
 )
 
 func New(config *syaml.SqlxInfo) *Sorm {
@@ -49,7 +50,7 @@ func New(config *syaml.SqlxInfo) *Sorm {
 		log.Printf("数据库连接异常：%s", err.Error())
 		return nil
 	}
-	autoFill = make(map[string]FillFunc, 0)
+	insertFill = make(map[string]FillFunc, 0)
 	pSqlx := &Sorm{db, config}
 	return pSqlx
 }
@@ -58,8 +59,12 @@ func New(config *syaml.SqlxInfo) *Sorm {
 type FillFunc func() any
 
 // 增加字段进行自动填充
-func AddAutoFill(column string, call FillFunc) {
-	autoFill[column] = call
+func AddInsertFill(column string, call FillFunc) {
+	insertFill[column] = call
+}
+
+func AddUpdateFill(column string, call FillFunc) {
+	updateFill[column] = call
 }
 
 type Sorm struct {
@@ -75,7 +80,7 @@ func (m *Sorm) Exists(obj interface{}) bool {
 
 // 按条件获取数据条数
 func (m *Sorm) GetCount(obj interface{}) int {
-	tableModel := GetField(obj, false)
+	tableModel := GetField(obj, 0)
 	condi := buildQuery(tableModel)
 	sql := fmt.Sprintf("select count(*) from %s where 1=1 %s", tableModel.TableName, condi)
 	var count int
@@ -102,7 +107,7 @@ func (m *Sorm) SelectCount(sql string, values ...interface{}) int {
 
 // 插入数据
 func (m *Sorm) Insert(obj interface{}) error {
-	tableModel := GetField(obj, true)
+	tableModel := GetField(obj, 1)
 	sql := insertSQL(tableModel)
 	printSQL(sql, tableModel.values...)
 	ret, err := m.DB.Exec(sql, tableModel.values...)
@@ -111,7 +116,7 @@ func (m *Sorm) Insert(obj interface{}) error {
 
 // 插入数据（同一事物db）
 func (m *Sorm) InsertTx(db *sqlx.Tx, obj interface{}) error {
-	tableModel := GetField(obj, true)
+	tableModel := GetField(obj, 1)
 	sql := insertSQL(tableModel)
 	printSQL(sql, tableModel.values...)
 	ret, err := db.Exec(sql, tableModel.values...)
@@ -131,7 +136,7 @@ func insertSQL(tableModel *ModelInfo) string {
 
 // 按ID更新非空字段
 func (m *Sorm) UpdateById(obj interface{}) error {
-	tableModel := GetField(obj, true)
+	tableModel := GetField(obj, 2)
 	sql := updateSQL(tableModel, tableModel.PrimaryKey)
 	printSQL(sql, tableModel.values...)
 	ret, err := m.DB.Exec(sql, tableModel.values...)
@@ -143,7 +148,7 @@ func (m *Sorm) Update(obj interface{}, condition ...string) error {
 	if len(condition) == 0 {
 		return errors.New("更新语句条件为空")
 	}
-	tableModel := GetField(obj, true)
+	tableModel := GetField(obj, 2)
 	sql := updateSQL(tableModel, condition...)
 	printSQL(sql, tableModel.values...)
 	ret, err := m.DB.Exec(sql, tableModel.values...)
@@ -155,7 +160,7 @@ func (m *Sorm) UpdateTx(db *sqlx.Tx, obj interface{}, condition ...string) error
 	if len(condition) == 0 {
 		return errors.New("更新语句条件为空")
 	}
-	tableModel := GetField(obj, true)
+	tableModel := GetField(obj, 2)
 	sql := updateSQL(tableModel, condition...)
 	printSQL(sql, tableModel.values...)
 	ret, err := db.Exec(sql, tableModel.values...)
@@ -183,7 +188,7 @@ func updateSQL(tableModel *ModelInfo, condition ...string) string {
 
 // 删除数据
 func (m *Sorm) Delete(obj interface{}) error {
-	tableModel := GetField(obj, false)
+	tableModel := GetField(obj, 0)
 	sql := deleteSQL(tableModel)
 	printSQL(sql, tableModel.values...)
 	ret, err := m.DB.Exec(sql, tableModel.values...)
@@ -192,7 +197,7 @@ func (m *Sorm) Delete(obj interface{}) error {
 
 // 删除数据（同一事务db）
 func (m *Sorm) DeleteTx(db *sqlx.Tx, obj interface{}) error {
-	tableModel := GetField(obj, false)
+	tableModel := GetField(obj, 0)
 	sql := deleteSQL(tableModel)
 	printSQL(sql, tableModel.values...)
 	ret, err := db.Exec(sql, tableModel.values...)
@@ -210,7 +215,7 @@ func deleteSQL(tableModel *ModelInfo) string {
 
 // 分页查询数据
 func (m *Sorm) SelectPage(data interface{}, sql string, page model.PageInfo, query interface{}) *model.PageResult {
-	tableModel := GetField(query, false)
+	tableModel := GetField(query, 0)
 	condi := buildQuery(tableModel)
 	sql = fmt.Sprintf("%s %s", sql, condi)
 
@@ -302,7 +307,7 @@ func (m *Sorm) SelectListPage(data interface{}, page model.PageInfo, sql string,
 
 // 查询集合
 func (m *Sorm) SelectList(data interface{}, query interface{}, columns ...string) error {
-	tableModel := GetField(query, false)
+	tableModel := GetField(query, 0)
 	var cols string
 	if len(columns) == 0 {
 		cols = " * "
@@ -322,7 +327,7 @@ func (m *Sorm) SelectList(data interface{}, query interface{}, columns ...string
 
 // 查询集合
 func (m *Sorm) SelectListTx(tx *sqlx.Tx, data interface{}, query interface{}, columns ...string) error {
-	tableModel := GetField(query, false)
+	tableModel := GetField(query, 0)
 	var cols string
 	if len(columns) == 0 {
 		cols = " * "
@@ -342,7 +347,7 @@ func (m *Sorm) SelectListTx(tx *sqlx.Tx, data interface{}, query interface{}, co
 
 // 查询一条记录
 func (m *Sorm) SelectOne(data interface{}, query interface{}, columns ...string) error {
-	tableModel := GetField(query, false)
+	tableModel := GetField(query, 0)
 	var cols string
 	if len(columns) == 0 {
 		cols = " * "
@@ -363,7 +368,7 @@ func (m *Sorm) SelectOne(data interface{}, query interface{}, columns ...string)
 
 // 查询一条记录
 func (m *Sorm) GetOne(data interface{}, columns ...string) error {
-	tableModel := GetField(data, false)
+	tableModel := GetField(data, 0)
 	var cols string
 	if len(columns) == 0 {
 		cols = " * "
@@ -384,7 +389,7 @@ func (m *Sorm) GetOne(data interface{}, columns ...string) error {
 
 // 查询一条记录
 func (m *Sorm) SelectOneTx(tx *sqlx.Tx, data interface{}, query interface{}, columns ...string) error {
-	tableModel := GetField(query, false)
+	tableModel := GetField(query, 0)
 	var cols string
 	if len(columns) == 0 {
 		cols = " * "
