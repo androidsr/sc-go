@@ -96,9 +96,14 @@ func GetField(t interface{}, fillType int) *ModelInfo {
 		} else {
 			kTag.Column = key
 		}
+
 		switch field.Kind() {
 		case reflect.String:
-			tableModel.values = append(tableModel.values, field.String())
+			if field.String() == "-" {
+				tableModel.values = append(tableModel.values, "")
+			} else {
+				tableModel.values = append(tableModel.values, field.String())
+			}
 		case reflect.Int64 | reflect.Int32 | reflect.Int:
 			tableModel.values = append(tableModel.values, field.Int())
 		case reflect.Float32 | reflect.Float64:
@@ -110,6 +115,7 @@ func GetField(t interface{}, fillType int) *ModelInfo {
 		default:
 			continue
 		}
+
 		tagItem.Keyword = kTag
 		tableModel.tags = append(tableModel.tags, tagItem)
 	}
