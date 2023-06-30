@@ -13,17 +13,19 @@ type PageInfo struct {
 	Orders  []OrderItem `json:"orders"`
 }
 
-func (m *PageInfo) SetPage(current int64, size int64) {
+func (m *PageInfo) SetPage(current int64, size int64) *PageInfo {
 	m.Current = current
 	m.Size = size
+	return m
 }
 
-func (m *PageInfo) AddOrder(column string, asc bool) {
+func (m *PageInfo) AddOrder(column string, asc bool) *PageInfo {
 	item := OrderItem{Column: column, Asc: asc}
 	if m.Orders == nil || len(m.Orders) == 0 {
 		m.Orders = make([]OrderItem, 0)
 	}
 	m.Orders = append(m.Orders, item)
+	return m
 }
 
 type OrderItem struct {
