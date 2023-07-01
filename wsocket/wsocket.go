@@ -19,7 +19,7 @@ type UserInfo func(w http.ResponseWriter, r *http.Request) string
 func New(upgrader websocket.Upgrader, interval time.Duration, pingFail int, user UserInfo) *Wsocket {
 	sSocket := new(Wsocket)
 	sSocket.clients = make(map[string]*websocket.Conn, 0)
-	sSocket.Data = make(chan Message, 10)
+	sSocket.Data = make(chan Message, 100)
 	sSocket.upgrader = upgrader
 	sSocket.user = user
 	sSocket.Interval = interval
@@ -93,18 +93,22 @@ func (m *Wsocket) handler(userId string, client *websocket.Conn) {
 	go func() {
 		ticker := time.NewTicker(m.Interval)
 		for {
-			<-ticker.C
-			fmt.Println("执行ping 定时器检查。。。")
-			maxNotPing++
-			if maxNotPing > m.PingFail {
-				client.Close()
-				isRun = false
+			select {
+			case <-ticker.C:
+				maxNotPing++
+			default:
+				if maxNotPing > m.PingFail {
+					client.Close()
+					isRun = false
+				}
 			}
+			fmt.Println("执行ping 定时器检查。。。")
 		}
 	}()
 	for isRun {
 		_, message, err := client.ReadMessage()
 		if err != nil {
+			maxNotPing = 1000
 			log.Println("读取WebSocket消息时发生错误：", err)
 			break
 		}
