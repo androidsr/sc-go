@@ -93,14 +93,11 @@ func (m *Wsocket) handler(userId string, client *websocket.Conn) {
 	go func() {
 		ticker := time.NewTicker(m.Interval)
 		for {
-			select {
-			case <-ticker.C:
-				maxNotPing++
-			default:
-				if maxNotPing > m.PingFail {
-					client.Close()
-					isRun = false
-				}
+			<-ticker.C
+			maxNotPing++
+			if maxNotPing > m.PingFail {
+				client.Close()
+				isRun = false
 			}
 			fmt.Println("执行ping 定时器检查。。。")
 		}
