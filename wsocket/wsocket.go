@@ -18,7 +18,7 @@ type UserInfo func(w http.ResponseWriter, r *http.Request) string
 func New(upgrader websocket.Upgrader, interval time.Duration, pingFail int, user UserInfo) *Wsocket {
 	sSocket := new(Wsocket)
 	sSocket.clients = make(map[string]*websocket.Conn, 0)
-	sSocket.Data = make(chan Message, 100)
+	sSocket.Data = make(chan Message, 10)
 	sSocket.upgrader = upgrader
 	sSocket.user = user
 	sSocket.Interval = interval
