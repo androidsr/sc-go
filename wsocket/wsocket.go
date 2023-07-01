@@ -87,9 +87,9 @@ func (m *Wsocket) handler(userId string, client *websocket.Conn) {
 		}
 		client.Close()
 	}()
-	maxNotPing := 0
+	//maxNotPing := 0
 	isRun := true
-	go func() {
+	/* go func() {
 		ticker := time.NewTicker(m.Interval)
 		for {
 			select {
@@ -102,14 +102,14 @@ func (m *Wsocket) handler(userId string, client *websocket.Conn) {
 				}
 			}
 		}
-	}()
+	}() */
 	for isRun {
 		_, message, err := client.ReadMessage()
 		if err != nil {
 			log.Println("读取WebSocket消息时发生错误：", err)
 			break
 		}
-		maxNotPing = 0
+		//maxNotPing = 0
 		if string(message) != "ping" {
 			m.Data <- Message{UserId: userId, Data: message}
 		}
