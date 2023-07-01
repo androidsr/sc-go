@@ -1,6 +1,7 @@
 package wsocket
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -87,29 +88,27 @@ func (m *Wsocket) handler(userId string, client *websocket.Conn) {
 		}
 		client.Close()
 	}()
-	//maxNotPing := 0
+	maxNotPing := 0
 	isRun := true
-	/* go func() {
+	go func() {
 		ticker := time.NewTicker(m.Interval)
 		for {
-			select {
-			case <-ticker.C:
-				maxNotPing++
-			default:
-				if maxNotPing > m.PingFail {
-					client.Close()
-					isRun = false
-				}
+			<-ticker.C
+			fmt.Println("执行ping 定时器检查。。。")
+			maxNotPing++
+			if maxNotPing > m.PingFail {
+				client.Close()
+				isRun = false
 			}
 		}
-	}() */
+	}()
 	for isRun {
 		_, message, err := client.ReadMessage()
 		if err != nil {
 			log.Println("读取WebSocket消息时发生错误：", err)
 			break
 		}
-		//maxNotPing = 0
+		maxNotPing = 0
 		if string(message) != "ping" {
 			m.Data <- Message{UserId: userId, Data: message}
 		}
