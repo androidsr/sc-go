@@ -2,7 +2,6 @@ package wsocket
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -92,10 +91,11 @@ func (m *Wsocket) handler(userId string, client *websocket.Conn) {
 	isRun := true
 	go func() {
 		ticker := time.NewTicker(m.Interval)
-		for {
+		for isRun {
 			<-ticker.C
 			maxNotPing++
 			if maxNotPing > m.PingFail {
+				ticker.Stop()
 				client.Close()
 				isRun = false
 			}
@@ -106,7 +106,7 @@ func (m *Wsocket) handler(userId string, client *websocket.Conn) {
 		_, message, err := client.ReadMessage()
 		if err != nil {
 			maxNotPing = 1000
-			log.Println("读取WebSocket消息时发生错误：", err)
+			isRun = false
 			break
 		}
 		maxNotPing = 0
