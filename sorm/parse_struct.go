@@ -124,13 +124,13 @@ func GetField(obj interface{}, fillType int) *StructInfo {
 					continue
 				}
 				val := autoFunc()
-				if val == nil || val == "" {
+				if val == nil || val == "" || reflect.ValueOf(value).IsNil() {
 					continue
 				}
 				value = val
 				reflections.SetField(obj, fName, value)
 			}
-			if value == nil || reflect.ValueOf(value).IsNil() {
+			if value == nil || value == "" || reflect.ValueOf(value).IsNil() {
 				continue
 			}
 			switch value.(type) {
