@@ -74,9 +74,6 @@ func GetField(obj interface{}, fillType int) *StructInfo {
 			if item.TagDB == "" {
 				item.TagDB = sc.GetUnderscore(fName)
 			}
-			if item.TagColumn == "" {
-				item.TagColumn = item.TagDB
-			}
 			value, _ := reflections.GetField(obj, fName)
 			if value == nil || value == "" {
 				var autoFunc FillFunc
@@ -125,7 +122,9 @@ func GetField(obj interface{}, fillType int) *StructInfo {
 			if result.PrimaryKey == "" && strings.ToLower(item.TagDB) == "id" {
 				result.PrimaryKey = item.TagDB
 			}
-
+			if item.TagColumn == "" {
+				item.TagColumn = item.TagDB
+			}
 			if item.TagKeyword == "" {
 				item.TagKeyword = "eq"
 			}
