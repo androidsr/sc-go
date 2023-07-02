@@ -113,7 +113,7 @@ func GetField(obj interface{}, fillType int) *StructInfo {
 
 			value, _ := reflections.GetField(obj, fName)
 			fmt.Println(fName, value)
-			if value == nil || value == "" {
+			if value == nil || value == "" || value == "<nil>" {
 				var autoFunc FillFunc
 				if fillType == 1 {
 					autoFunc = insertFill[item.TagDB]
@@ -132,7 +132,7 @@ func GetField(obj interface{}, fillType int) *StructInfo {
 				value = val
 				reflections.SetField(obj, fName, value)
 			}
-			if value == nil {
+			if value == nil || value == "<nil>" {
 				continue
 			}
 			switch value.(type) {
@@ -144,7 +144,6 @@ func GetField(obj interface{}, fillType int) *StructInfo {
 			if value == "-" {
 				value = ""
 			}
-
 			item.Value = value
 			result.Fields = append(result.Fields, item)
 		}
