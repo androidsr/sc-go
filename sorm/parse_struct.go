@@ -49,7 +49,6 @@ func GetField(obj interface{}, fillType int) *StructInfo {
 	result.Fields = make([]FieldInfo, 0)
 	result.TableName = sc.GetUnderscore(reflect.TypeOf(obj).Name())
 	fmt.Println(sc.GetUnderscore(reflect.TypeOf(obj).Name()))
-
 	fields, _ := reflections.Fields(obj)
 	var item FieldInfo
 	for _, fName := range fields {
