@@ -2,6 +2,7 @@ package sc
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"reflect"
 	"strings"
@@ -100,17 +101,26 @@ func ParseDateTimeNumber(ymd string) time.Time {
 
 func Copy[T any](from interface{}) T {
 	var to T
-	copier.CopyWithOption(&to, &from, copier.Option{IgnoreEmpty: true, DeepCopy: true})
+	err := copier.CopyWithOption(&to, &from, copier.Option{IgnoreEmpty: true, DeepCopy: true})
+	if err != nil {
+		log.Printf("结构体复制出错：%v", err)
+	}
 	return to
 }
 
 func CopyTo(from interface{}, to interface{}) {
-	copier.CopyWithOption(&to, from, copier.Option{IgnoreEmpty: true, DeepCopy: true})
+	err := copier.CopyWithOption(&to, from, copier.Option{IgnoreEmpty: true, DeepCopy: true})
+	if err != nil {
+		log.Printf("结构体复制出错：%v", err)
+	}
 }
 
 func CopySlice[T any](from interface{}) []T {
 	to := make([]T, 0)
-	copier.CopyWithOption(&to, &from, copier.Option{IgnoreEmpty: true, DeepCopy: true})
+	err := copier.CopyWithOption(&to, &from, copier.Option{IgnoreEmpty: true, DeepCopy: true})
+	if err != nil {
+		log.Printf("结构体复制数组出错：%v", err)
+	}
 	return to
 }
 
