@@ -112,6 +112,7 @@ func GetField(obj interface{}, fillType int) *StructInfo {
 
 			value, _ := reflections.GetField(obj, fName)
 			valOf := reflect.ValueOf(value)
+
 			if valOf.Kind() == reflect.Ptr && valOf.IsNil() {
 				continue
 			}
