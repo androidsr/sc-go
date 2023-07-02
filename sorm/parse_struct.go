@@ -1,6 +1,7 @@
 package sorm
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -111,10 +112,8 @@ func GetField(obj interface{}, fillType int) *StructInfo {
 			}
 
 			value, _ := reflections.GetField(obj, fName)
-			valOf := reflect.ValueOf(value)
-
-			if valOf.Kind() == reflect.Ptr && valOf.IsNil() {
-				continue
+			if val, ok := value.(string); ok {
+				fmt.Println(val)
 			}
 			if value == nil || value == "" {
 				var autoFunc FillFunc
