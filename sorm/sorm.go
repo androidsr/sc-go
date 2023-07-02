@@ -80,11 +80,11 @@ func (m *Sorm) Exists(obj interface{}) bool {
 
 // 按条件获取数据条数
 func (m *Sorm) GetCount(obj interface{}) int {
-	tableModel := GetField(obj, 0)
-	condi := buildQuery(tableModel)
-	sql := fmt.Sprintf("select count(*) from %s where 1=1 %s", tableModel.TableName, condi)
+	info := GetField(obj, 0)
+	builder := buildQuery(info)
+	sql := fmt.Sprintf("select count(*) from %s where 1=1 %s", info.TableName, builder.sql.String())
 	var count int
-	err := m.DB.Get(&count, sql, tableModel.values...)
+	err := m.DB.Get(&count, sql, builder.values...)
 	if err != nil {
 		log.Printf("SQL error:%s\n %v", sql, err)
 		return 0
@@ -107,39 +107,40 @@ func (m *Sorm) SelectCount(sql string, values ...interface{}) int {
 
 // 插入数据
 func (m *Sorm) Insert(obj interface{}) error {
-	tableModel := GetField(obj, 1)
-	sql := insertSQL(tableModel)
-	printSQL(sql, tableModel.values...)
-	ret, err := m.DB.Exec(sql, tableModel.values...)
+	info := GetField(obj, 1)
+	columns, values := info.GetDbValues(EXEC)
+	sql := insertSQL(info.TableName, columns)
+	printSQL(sql, values...)
+	ret, err := m.DB.Exec(sql, values...)
 	return getAffectedRow(ret, err)
 }
 
 // 插入数据（同一事物db）
 func (m *Sorm) InsertTx(db *sqlx.Tx, obj interface{}) error {
-	tableModel := GetField(obj, 1)
-	sql := insertSQL(tableModel)
-	printSQL(sql, tableModel.values...)
-	ret, err := db.Exec(sql, tableModel.values...)
+	info := GetField(obj, 1)
+	column, values := info.GetDbValues(EXEC)
+	sql := insertSQL(info.TableName, column)
+	printSQL(sql, values...)
+	ret, err := db.Exec(sql, values...)
 	return getAffectedRow(ret, err)
 }
 
-func insertSQL(tableModel *ModelInfo) string {
+func insertSQL(tableName string, columns []string) string {
 	vals := make([]string, 0)
-	columns := make([]string, 0)
-	for i := 0; i < len(tableModel.tags); i++ {
+	for i := 0; i < len(columns); i++ {
 		vals = append(vals, "?")
-		columns = append(columns, tableModel.tags[i].Column)
 	}
-	sql := fmt.Sprintf("insert into %s(%s) values (%s)", tableModel.TableName, strings.Join(columns, ", "), strings.Join(vals, ", "))
+	sql := fmt.Sprintf("insert into %s(%s) values (%s)", tableName, strings.Join(columns, ", "), strings.Join(vals, ", "))
 	return sql
 }
 
 // 按ID更新非空字段
 func (m *Sorm) UpdateById(obj interface{}) error {
-	tableModel := GetField(obj, 2)
-	sql := updateSQL(tableModel, tableModel.PrimaryKey)
-	printSQL(sql, tableModel.values...)
-	ret, err := m.DB.Exec(sql, tableModel.values...)
+	info := GetField(obj, 2)
+	column, values := info.GetDbValues(EXEC)
+	sql, values := updateSQL(info.TableName, column, values, info.PrimaryKey)
+	printSQL(sql, values...)
+	ret, err := m.DB.Exec(sql, values...)
 	return getAffectedRow(ret, err)
 }
 
@@ -148,10 +149,11 @@ func (m *Sorm) Update(obj interface{}, condition ...string) error {
 	if len(condition) == 0 {
 		return errors.New("更新语句条件为空")
 	}
-	tableModel := GetField(obj, 2)
-	sql := updateSQL(tableModel, condition...)
-	printSQL(sql, tableModel.values...)
-	ret, err := m.DB.Exec(sql, tableModel.values...)
+	info := GetField(obj, 2)
+	column, values := info.GetDbValues(EXEC)
+	sql, values := updateSQL(info.TableName, column, values, info.PrimaryKey)
+	printSQL(sql, values...)
+	ret, err := m.DB.Exec(sql, values...)
 	return getAffectedRow(ret, err)
 }
 
@@ -160,109 +162,61 @@ func (m *Sorm) UpdateTx(db *sqlx.Tx, obj interface{}, condition ...string) error
 	if len(condition) == 0 {
 		return errors.New("更新语句条件为空")
 	}
-	tableModel := GetField(obj, 2)
-	sql := updateSQL(tableModel, condition...)
-	printSQL(sql, tableModel.values...)
-	ret, err := db.Exec(sql, tableModel.values...)
+	info := GetField(obj, 2)
+	column, values := info.GetDbValues(EXEC)
+	sql, values := updateSQL(info.TableName, column, values, info.PrimaryKey)
+	printSQL(sql, values...)
+	ret, err := db.Exec(sql, values...)
 	return getAffectedRow(ret, err)
 }
 
-func updateSQL(tableModel *ModelInfo, condition ...string) string {
+func updateSQL(tableName string, columns []string, values []interface{}, condition ...string) (string, []interface{}) {
 	sets := bytes.Buffer{}
 	conds := bytes.Buffer{}
 	setValues := make([]interface{}, 0)
-	condValues := make([]interface{}, 0)
-	for i, tag := range tableModel.tags {
-		if sc.Contains(condition, tag.Column) {
-			conds.WriteString(fmt.Sprintf(" and %s = ?", tag.Column))
-			condValues = append(condValues, tableModel.values[i])
+	for i, column := range columns {
+		if sc.Contains(condition, column) {
+			conds.WriteString(fmt.Sprintf(" and %s = ?", column))
 		} else {
-			sets.WriteString(fmt.Sprintf(" %s = ?,", tag.Column))
-			setValues = append(setValues, tableModel.values[i])
+			sets.WriteString(fmt.Sprintf(" %s = ?,", column))
 		}
+		setValues = append(setValues, values[i])
 	}
-	sql := fmt.Sprintf("update %s set %s where 1=1 %s", tableModel.TableName, sets.String()[:sets.Len()-1], conds.String())
-	tableModel.values = append(setValues, condValues...)
-	return sql
+	sql := fmt.Sprintf("update %s set %s where 1=1 %s", tableName, sets.String()[:sets.Len()-1], conds.String())
+	return sql, setValues
 }
 
 // 删除数据
 func (m *Sorm) Delete(obj interface{}) error {
-	tableModel := GetField(obj, 0)
-	sql := deleteSQL(tableModel)
-	printSQL(sql, tableModel.values...)
-	ret, err := m.DB.Exec(sql, tableModel.values...)
+	info := GetField(obj, 0)
+	column, values := info.GetDbValues(EXEC)
+	sql := deleteSQL(info.TableName, column)
+	printSQL(sql, values...)
+	ret, err := m.DB.Exec(sql, values...)
 	return getAffectedRow(ret, err)
 }
 
 // 删除数据（同一事务db）
 func (m *Sorm) DeleteTx(db *sqlx.Tx, obj interface{}) error {
-	tableModel := GetField(obj, 0)
-	sql := deleteSQL(tableModel)
-	printSQL(sql, tableModel.values...)
-	ret, err := db.Exec(sql, tableModel.values...)
+	info := GetField(obj, 0)
+	column, values := info.GetDbValues(EXEC)
+	sql := deleteSQL(info.TableName, column)
+	printSQL(sql, values...)
+	ret, err := db.Exec(sql, values...)
 	return getAffectedRow(ret, err)
 }
 
-func deleteSQL(tableModel *ModelInfo) string {
+func deleteSQL(tableName string, columns []string) string {
 	condition := bytes.Buffer{}
-	for _, tag := range tableModel.tags {
-		condition.WriteString(fmt.Sprintf(" and %s = ? ", tag.Column))
+	for _, column := range columns {
+		condition.WriteString(fmt.Sprintf(" and %s = ? ", column))
 	}
-	sql := fmt.Sprintf("delete from %s where 1=1 %s", tableModel.TableName, condition.String())
+	sql := fmt.Sprintf("delete from %s where 1=1 %s", tableName, condition.String())
 	return sql
 }
 
 // 分页查询数据
-func (m *Sorm) SelectPage(data interface{}, sql string, page model.PageInfo, query interface{}) *model.PageResult {
-	tableModel := GetField(query, 0)
-	condi := buildQuery(tableModel)
-	sql = fmt.Sprintf("%s %s", sql, condi)
-
-	result := new(model.PageResult)
-	if &page != nil {
-		if page.Current == 0 {
-			page.Current = 1
-		}
-		count := m.SelectCount(sql, tableModel.values...)
-		result.Current = page.Current
-		result.Size = page.Size
-		if count == 0 {
-			return nil
-		}
-		result.Total = int64(count)
-		offset := (page.Current - 1) * page.Size
-		result.Current = offset
-		orderBy := bytes.Buffer{}
-		if page.Orders != nil {
-			orderBy.WriteString("order by ")
-			for i, v := range page.Orders {
-				orderBy.WriteString(fmt.Sprintf(" %s ", v.Column))
-				if v.Asc {
-					orderBy.WriteString("asc")
-				} else {
-					orderBy.WriteString("desc")
-				}
-				if i != len(page.Orders)-1 {
-					orderBy.WriteString(", ")
-				}
-			}
-		}
-		sql = fmt.Sprintf("select * from (%s) t %s LIMIT ? OFFSET ?", sql, orderBy.String())
-		tableModel.values = append(tableModel.values, page.Size, offset)
-	}
-	printSQL(sql, tableModel.values...)
-	err := m.DB.Select(data, sql, tableModel.values...)
-	if err != nil {
-		log.Printf("sql error: %v\n", err)
-		return nil
-	}
-	result.Rows = data
-	return result
-}
-
-// 分页查询数据
-func (m *Sorm) SelectListPage(data interface{}, page model.PageInfo, sql string, values ...interface{}) *model.PageResult {
+func (m *Sorm) SelectPage(data interface{}, page model.PageInfo, sql string, values ...interface{}) *model.PageResult {
 	result := new(model.PageResult)
 	if &page != nil {
 		if page.Current == 0 {
@@ -307,17 +261,18 @@ func (m *Sorm) SelectListPage(data interface{}, page model.PageInfo, sql string,
 
 // 查询集合
 func (m *Sorm) SelectList(data interface{}, query interface{}, columns ...string) error {
-	tableModel := GetField(query, 0)
+	info := GetField(query, 0)
+	_, values := info.GetDbValues(QUERY)
 	var cols string
 	if len(columns) == 0 {
 		cols = " * "
 	} else {
 		cols = strings.Join(columns, ", ")
 	}
-	sql := fmt.Sprintf("select %s from %s where 1=1 ", cols, tableModel.TableName)
-	condi := buildQuery(tableModel)
-	sql += condi
-	err := m.DB.Select(data, sql, tableModel.values...)
+	sql := fmt.Sprintf("select %s from %s where 1=1 ", cols, info.TableName)
+	condi := buildQuery(info)
+	sql += condi.sql.String()
+	err := m.DB.Select(data, sql, values...)
 	if err != nil {
 		log.Printf("sql error:%v\n", err)
 		return err
@@ -327,17 +282,18 @@ func (m *Sorm) SelectList(data interface{}, query interface{}, columns ...string
 
 // 查询集合
 func (m *Sorm) SelectListTx(tx *sqlx.Tx, data interface{}, query interface{}, columns ...string) error {
-	tableModel := GetField(query, 0)
+	info := GetField(query, 0)
+	_, values := info.GetDbValues(QUERY)
 	var cols string
 	if len(columns) == 0 {
 		cols = " * "
 	} else {
 		cols = strings.Join(columns, ", ")
 	}
-	sql := fmt.Sprintf("select %s from %s where 1=1 ", cols, tableModel.TableName)
-	condi := buildQuery(tableModel)
-	sql += condi
-	err := tx.Select(data, sql, tableModel.values...)
+	sql := fmt.Sprintf("select %s from %s where 1=1 ", cols, info.TableName)
+	condi := buildQuery(info)
+	sql += condi.sql.String()
+	err := tx.Select(data, sql, values...)
 	if err != nil {
 		log.Printf("sql error:%v\n", err)
 		return err
@@ -347,18 +303,19 @@ func (m *Sorm) SelectListTx(tx *sqlx.Tx, data interface{}, query interface{}, co
 
 // 查询一条记录
 func (m *Sorm) SelectOne(data interface{}, query interface{}, columns ...string) error {
-	tableModel := GetField(query, 0)
+	info := GetField(query, 0)
+	_, values := info.GetDbValues(QUERY)
 	var cols string
 	if len(columns) == 0 {
 		cols = " * "
 	} else {
 		cols = strings.Join(columns, ", ")
 	}
-	sql := fmt.Sprintf("select %s from %s where 1=1 ", cols, tableModel.TableName)
-	condi := buildQuery(tableModel)
-	sql += condi
-	printSQL(sql, tableModel.values...)
-	err := m.DB.Get(data, sql, tableModel.values...)
+	sql := fmt.Sprintf("select %s from %s where 1=1 ", cols, info.TableName)
+	condi := buildQuery(info)
+	sql += condi.sql.String()
+	printSQL(sql, values...)
+	err := m.DB.Get(data, sql, values...)
 	if err != nil {
 		log.Printf("sql error:%v\n", err)
 		return err
@@ -368,18 +325,19 @@ func (m *Sorm) SelectOne(data interface{}, query interface{}, columns ...string)
 
 // 查询一条记录
 func (m *Sorm) GetOne(data interface{}, columns ...string) error {
-	tableModel := GetField(data, 0)
+	info := GetField(data, 0)
+	_, values := info.GetDbValues(QUERY)
 	var cols string
 	if len(columns) == 0 {
 		cols = " * "
 	} else {
 		cols = strings.Join(columns, ", ")
 	}
-	sql := fmt.Sprintf("select %s from %s where 1=1 ", cols, tableModel.TableName)
-	condi := buildQuery(tableModel)
-	sql += condi
-	printSQL(sql, tableModel.values...)
-	err := m.DB.Get(data, sql, tableModel.values...)
+	sql := fmt.Sprintf("select %s from %s where 1=1 ", cols, info.TableName)
+	condi := buildQuery(info)
+	sql += condi.sql.String()
+	printSQL(sql, values...)
+	err := m.DB.Get(data, sql, values...)
 	if err != nil {
 		log.Printf("sql error:%v\n", err)
 		return err
@@ -389,18 +347,19 @@ func (m *Sorm) GetOne(data interface{}, columns ...string) error {
 
 // 查询一条记录
 func (m *Sorm) SelectOneTx(tx *sqlx.Tx, data interface{}, query interface{}, columns ...string) error {
-	tableModel := GetField(query, 0)
+	info := GetField(query, 0)
+	_, values := info.GetDbValues(QUERY)
 	var cols string
 	if len(columns) == 0 {
 		cols = " * "
 	} else {
 		cols = strings.Join(columns, ", ")
 	}
-	sql := fmt.Sprintf("select %s from %s where 1=1 ", cols, tableModel.TableName)
-	condi := buildQuery(tableModel)
-	sql += condi
-	printSQL(sql, tableModel.values...)
-	err := tx.Get(data, sql, tableModel.values...)
+	sql := fmt.Sprintf("select %s from %s where 1=1 ", cols, info.TableName)
+	condi := buildQuery(info)
+	sql += condi.sql.String()
+	printSQL(sql, values...)
+	err := tx.Get(data, sql, values...)
 	if err != nil {
 		log.Printf("sql error:%v\n", err)
 		return err

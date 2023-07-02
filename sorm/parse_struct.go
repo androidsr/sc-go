@@ -5,155 +5,135 @@ import (
 	"strings"
 
 	"github.com/androidsr/sc-go/sc"
+	"github.com/oleiade/reflections"
 )
 
-func GetField(t interface{}, fillType int) *ModelInfo {
-	value := reflect.Indirect(reflect.ValueOf(t))
-	vType := value.Type()
-	if value.Kind() == reflect.Slice {
-		vType = value.Type().Elem()
-		value = reflect.New(vType).Elem()
-	}
-	tableModel := new(ModelInfo)
-	tableModel.values = make([]interface{}, 0)
-	tableModel.TableName = sc.GetUnderscore(value.Type().Name())
-	tableModel.tags = make([]TagInfo, 0)
-	for i := 0; i < vType.NumField(); i++ {
-		tField := vType.Field(i)
-		field := value.Field(i)
-		if tField.Anonymous && tField.Type.Kind() == reflect.Struct {
-			parentType := tField.Type
-			parentValue := reflect.Indirect(reflect.ValueOf(tField))
-			if value.Kind() == reflect.Slice {
-				parentType = value.Type().Elem()
-				parentValue = reflect.New(vType).Elem()
-			}
-			for j := 0; j < parentType.NumField(); j++ {
-				ptField := parentType.Field(j)
-				pField := parentValue.Field(j)
-				getFieldInfo(tableModel, pField, ptField, parentType, fillType)
-			}
-		}
-		getFieldInfo(tableModel, field, tField, vType, fillType)
-	}
-	return tableModel
-}
+const (
+	EXEC  OrmAction = 1
+	QUERY OrmAction = 2
+)
 
-func getFieldInfo(tableModel *ModelInfo, field reflect.Value, tField reflect.StructField, vType reflect.Type, fillType int) {
-	tagItem := TagInfo{}
-	tag := vType.Field(i).Tag
-	key := tag.Get("db")
-	if key == "" {
-		key = tag.Get("json")
-	} else {
-		if key == "-" {
-			return
-		}
-		if strings.Contains(key, ",") {
-			ks := strings.Split(key, ",")
-			key = ks[0]
-			pk := ks[1]
-			if pk == "primary_key" || pk == "primaryKey" || pk == "pk" {
-				tableModel.PrimaryKey = key
-			}
-		}
-	}
-	if key == "" {
-		key = sc.GetUnderscore(tField.Name)
-	}
-	tagItem.Column = key
-	if strings.ToLower(key) == "id" {
-		tableModel.PrimaryKey = key
-	}
-	if field.Kind() == reflect.Ptr {
-		if field.IsNil() {
-			var autoFunc FillFunc
-			if fillType == 1 {
-				autoFunc = insertFill[key]
-			} else if fillType == 2 {
-				autoFunc = updateFill[key]
-			} else {
-				return
-			}
-			if autoFunc == nil {
-				return
-			}
-			val := autoFunc()
-			if val == nil || val == "" {
-				return
-			}
-			field.Set(reflect.ValueOf(&val))
-		}
-	} else if field.IsZero() {
-		var autoFunc FillFunc
-		if fillType == 1 {
-			autoFunc = insertFill[key]
-		} else if fillType == 2 {
-			autoFunc = updateFill[key]
-		} else {
-			return
-		}
-		if autoFunc == nil {
-			return
-		}
-		val := autoFunc()
-		if val == nil || val == "" {
-			return
-		}
-		field.Set(reflect.ValueOf(val))
-	}
+type OrmAction int
 
-	keyword := tag.Get("keyword")
-	if keyword == "" {
-		keyword = "eq"
-	}
-	ks := strings.Split(keyword, ",")
-	kTag := KeywordTag{}
-	kTag.Type = ks[0]
-	if len(ks) >= 2 {
-		kTag.Column = ks[1]
-	} else {
-		kTag.Column = key
-	}
-
-	switch field.Kind() {
-	case reflect.String:
-		if field.String() == "-" {
-			tableModel.values = append(tableModel.values, "")
-		} else {
-			tableModel.values = append(tableModel.values, field.String())
-		}
-	case reflect.Int64 | reflect.Int32 | reflect.Int:
-		tableModel.values = append(tableModel.values, field.Int())
-	case reflect.Float32 | reflect.Float64:
-		tableModel.values = append(tableModel.values, field.Float())
-	case reflect.Bool:
-		tableModel.values = append(tableModel.values, field.Bool())
-	case reflect.Ptr:
-		tableModel.values = append(tableModel.values, field.Elem().Interface())
-	default:
-		return
-	}
-
-	tagItem.Keyword = kTag
-	tableModel.tags = append(tableModel.tags, tagItem)
-}
-
-type ModelInfo struct {
+type StructInfo struct {
 	TableName  string
 	PrimaryKey string
-	tags       []TagInfo
-	values     []interface{}
+	Fields     []FieldInfo
 }
 
-type TagInfo struct {
-	Column  string
-	Keyword KeywordTag
+func (m *StructInfo) GetDbValues(action OrmAction) ([]string, []interface{}) {
+	columns := make([]string, 0)
+	values := make([]interface{}, 0)
+	for _, v := range m.Fields {
+		if action == EXEC {
+			columns = append(columns, v.TagDB)
+		} else if action == QUERY {
+			columns = append(columns, v.TagColumn)
+		}
+		values = append(values, v.Value)
+	}
+	return columns, values
 }
 
-type KeywordTag struct {
-	Type   string
-	Column string
+type FieldInfo struct {
+	Name       string
+	TagDB      string
+	TagColumn  string
+	TagKeyword string
+	Value      interface{}
+}
+
+func GetField(obj interface{}, fillType int) *StructInfo {
+	result := new(StructInfo)
+	result.Fields = make([]FieldInfo, 0)
+	result.TableName = sc.GetUnderscore(reflect.TypeOf(obj).Name())
+	fields, _ := reflections.Fields(obj)
+	var item FieldInfo
+	for _, fName := range fields {
+		kind, _ := reflections.GetFieldKind(obj, fName)
+		if kind == reflect.Struct {
+			value, _ := reflections.GetField(obj, fName)
+			pResult := GetField(value, fillType)
+			result.Fields = append(result.Fields, pResult.Fields...)
+		} else {
+			item = FieldInfo{}
+			item.Name = fName
+			tagDB, _ := reflections.GetFieldTag(obj, fName, "db")
+			tagKeyword, _ := reflections.GetFieldTag(obj, fName, "keyword")
+			tagColumn, _ := reflections.GetFieldTag(obj, fName, "column")
+			tagJson, _ := reflections.GetFieldTag(obj, fName, "json")
+			item.TagDB = tagDB
+			item.TagKeyword = tagKeyword
+			item.TagColumn = tagColumn
+			if item.TagDB == "-" {
+				continue
+			}
+			if item.TagDB == "" {
+				item.TagDB = sc.GetUnderscore(tagJson)
+			}
+			if item.TagDB == "" {
+				item.TagDB = sc.GetUnderscore(fName)
+			}
+			if item.TagColumn == "" {
+				item.TagColumn = item.TagDB
+			}
+			value, _ := reflections.GetField(obj, fName)
+			if value == nil || value == "" {
+				var autoFunc FillFunc
+				if fillType == 1 {
+					autoFunc = insertFill[item.TagDB]
+				} else if fillType == 2 {
+					autoFunc = updateFill[item.TagDB]
+				} else {
+					continue
+				}
+				if autoFunc == nil {
+					continue
+				}
+				val := autoFunc()
+				if val == nil || val == "" {
+					continue
+				}
+				value = val
+				reflections.SetField(obj, fName, value)
+			}
+			if value == nil {
+				continue
+			}
+			switch value.(type) {
+			case string:
+				if value == "" {
+					continue
+				}
+			}
+			if value == "-" {
+				value = ""
+			}
+			if strings.Contains(item.TagDB, ",") || strings.Contains(item.TagDB, " ") {
+				var ks []string
+				if strings.Contains(item.TagDB, ",") {
+					ks = strings.Split(item.TagDB, ",")
+				} else if strings.Contains(item.TagDB, " ") {
+					ks = strings.Split(item.TagDB, " ")
+				}
+				item.TagDB = ks[0]
+				pk := ks[1]
+				if pk == "primary_key" || pk == "primaryKey" || pk == "pk" {
+					result.PrimaryKey = item.TagDB
+				}
+			}
+			if result.PrimaryKey == "" && strings.ToLower(item.TagDB) == "id" {
+				result.PrimaryKey = item.TagDB
+			}
+
+			if item.TagKeyword == "" {
+				item.TagKeyword = "eq"
+			}
+			item.Value = value
+			result.Fields = append(result.Fields, item)
+		}
+	}
+	return result
 }
 
 type BetweenInfo struct {
@@ -161,51 +141,50 @@ type BetweenInfo struct {
 	Right interface{} `json:"end"`
 }
 
-func buildQuery(tableModel *ModelInfo) string {
+func buildQuery(info *StructInfo) *SelectBuilder {
 	builder := Builder("")
-	for i, tag := range tableModel.tags {
-		keyword := tag.Keyword
-		switch keyword.Type {
+	for _, item := range info.Fields {
+		keyword := item.TagKeyword
+		switch keyword {
 		case Eq:
-			builder.Eq(keyword.Column, tableModel.values[i])
+			builder.Eq(item.TagColumn, item.Value)
 		case Ne:
-			builder.Ne(keyword.Column, tableModel.values[i])
+			builder.Ne(item.TagColumn, item.Value)
 		case In:
-			builder.In(keyword.Column, tableModel.values[i])
+			builder.In(item.TagColumn, item.Value)
 		case NotIn:
-			builder.NotIn(keyword.Column, tableModel.values[i])
+			builder.NotIn(item.TagColumn, item.Value)
 		case Gt:
-			builder.Gt(keyword.Column, tableModel.values[i])
+			builder.Gt(item.TagColumn, item.Value)
 		case Lt:
-			builder.Lt(keyword.Column, tableModel.values[i])
+			builder.Lt(item.TagColumn, item.Value)
 		case Ge:
-			builder.Ge(keyword.Column, tableModel.values[i])
+			builder.Ge(item.TagColumn, item.Value)
 		case Le:
-			builder.Le(keyword.Column, tableModel.values[i])
+			builder.Le(item.TagColumn, item.Value)
 		case Between:
-			value, ok := tableModel.values[i].(BetweenInfo)
+			value, ok := item.Value.(BetweenInfo)
 			if !ok {
 				break
 			}
-			builder.Between(keyword.Column, value)
+			builder.Between(item.TagColumn, value)
 		case NotBetween:
-			value, ok := tableModel.values[i].(BetweenInfo)
+			value, ok := item.Value.(BetweenInfo)
 			if !ok {
 				break
 			}
-			builder.NotBetween(keyword.Column, value)
+			builder.NotBetween(item.TagColumn, value)
 		case Like:
-			builder.Like(keyword.Column, tableModel.values[i])
+			builder.Like(item.TagColumn, item.Value)
 		case NotLike:
-			builder.NotLike(keyword.Column, tableModel.values[i])
+			builder.NotLike(item.TagColumn, item.Value)
 		case LikeLeft:
-			builder.LikeLeft(keyword.Column, tableModel.values[i])
+			builder.LikeLeft(item.TagColumn, item.Value)
 		case LikeRight:
-			builder.LikeRight(keyword.Column, tableModel.values[i])
+			builder.LikeRight(item.TagColumn, item.Value)
 		}
 	}
-	tableModel.values = builder.values
-	return builder.sql.String()
+	return builder
 }
 
 func Placeholders(n int) string {

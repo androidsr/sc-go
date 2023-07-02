@@ -13,6 +13,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/kardianos/service v1.2.2
 	github.com/nacos-group/nacos-sdk-go/v2 v2.2.2
+	github.com/oleiade/reflections v1.0.1
 	github.com/opentracing/opentracing-go v1.2.1-0.20220228012449-10b1cf09e00b
 	github.com/redis/go-redis/v9 v9.0.4
 	github.com/syndtr/goleveldb v1.0.0
