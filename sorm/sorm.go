@@ -371,8 +371,7 @@ func (m *Sorm) SelectOneTx(tx *sqlx.Tx, data interface{}, query interface{}, col
 
 // 打印SQL信息
 func printSQL(sql string, values ...interface{}) {
-	fmt.Printf("执行SQL: %s\n ", sql)
-	fmt.Printf("输入参数: %v\n ", values)
+	fmt.Printf("执行SQL: %s\n%v\n", sql, values)
 }
 
 // 获取SQL执行影响行数

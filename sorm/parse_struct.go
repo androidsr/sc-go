@@ -1,6 +1,7 @@
 package sorm
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -75,7 +76,9 @@ func GetField(obj interface{}, fillType int) *StructInfo {
 			if item.TagDB == "" {
 				item.TagDB = sc.GetUnderscore(fName)
 			}
+
 			value, _ := reflections.GetField(obj, fName)
+			fmt.Println(fName, "==", value)
 			if value == nil || value == "" {
 				var autoFunc FillFunc
 				if fillType == 1 {
