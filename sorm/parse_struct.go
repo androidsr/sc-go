@@ -111,7 +111,13 @@ func GetField(obj interface{}, fillType int) *StructInfo {
 			}
 
 			value, _ := reflections.GetField(obj, fName)
-			if value == nil || value == "" || reflect.ValueOf(value).IsNil() {
+			kind, _ := reflections.GetFieldKind(obj, fName)
+			if kind == reflect.Ptr || kind == reflect.Interface {
+				if reflect.ValueOf(value).IsNil() {
+					continue
+				}
+			}
+			if value == nil || value == "" {
 				var autoFunc FillFunc
 				if fillType == 1 {
 					autoFunc = insertFill[item.TagDB]
