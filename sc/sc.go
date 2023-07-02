@@ -98,16 +98,20 @@ func ParseDateTimeNumber(ymd string) time.Time {
 	return t
 }
 
-func Copy[T any](from interface{}) (T, error) {
+func Copy[T any](from interface{}) T {
 	var to T
 	copier.CopyWithOption(&to, &from, copier.Option{IgnoreEmpty: true, DeepCopy: true})
-	return to, nil
+	return to
 }
 
-func CopySlice[T any](from interface{}) ([]T, error) {
+func CopyTo(from interface{}, to interface{}) {
+	copier.CopyWithOption(&to, from, copier.Option{IgnoreEmpty: true, DeepCopy: true})
+}
+
+func CopySlice[T any](from interface{}) []T {
 	to := make([]T, 0)
 	copier.CopyWithOption(&to, &from, copier.Option{IgnoreEmpty: true, DeepCopy: true})
-	return to, nil
+	return to
 }
 
 func GetIP(prefix string) string {
