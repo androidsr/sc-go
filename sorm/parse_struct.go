@@ -111,10 +111,6 @@ func GetField(obj interface{}, fillType int) *StructInfo {
 			}
 
 			value, _ := reflections.GetField(obj, fName)
-			valOf := reflect.ValueOf(value)
-			if valOf.Kind() == reflect.Ptr && valOf.IsNil() {
-				continue
-			}
 			if value == nil || value == "" {
 				var autoFunc FillFunc
 				if fillType == 1 {
@@ -134,7 +130,7 @@ func GetField(obj interface{}, fillType int) *StructInfo {
 				value = val
 				reflections.SetField(obj, fName, value)
 			}
-			if value == nil || value == "" {
+			if value == nil || value == "" || value == -99 {
 				continue
 			}
 			switch value.(type) {
