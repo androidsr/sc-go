@@ -21,105 +21,122 @@ func GetField(t interface{}, fillType int) *ModelInfo {
 	for i := 0; i < vType.NumField(); i++ {
 		tField := vType.Field(i)
 		field := value.Field(i)
-		tagItem := TagInfo{}
-		tag := vType.Field(i).Tag
-		key := tag.Get("db")
-		if key == "" {
-			key = tag.Get("json")
-		} else {
-			if key == "-" {
-				continue
+		if tField.Anonymous && tField.Type.Kind() == reflect.Struct {
+			parentType := tField.Type
+			parentValue := reflect.Indirect(reflect.ValueOf(tField))
+			if value.Kind() == reflect.Slice {
+				parentType = value.Type().Elem()
+				parentValue = reflect.New(vType).Elem()
 			}
-			if strings.Contains(key, ",") {
-				ks := strings.Split(key, ",")
-				key = ks[0]
-				pk := ks[1]
-				if pk == "primary_key" || pk == "primaryKey" || pk == "pk" {
-					tableModel.PrimaryKey = key
-				}
+			for j := 0; j < parentType.NumField(); j++ {
+				ptField := parentType.Field(j)
+				pField := parentValue.Field(j)
+				getFieldInfo(tableModel, pField, ptField, parentType, fillType)
 			}
 		}
-		if key == "" {
-			key = sc.GetUnderscore(tField.Name)
+		getFieldInfo(tableModel, field, tField, vType, fillType)
+	}
+	return tableModel
+}
+
+func getFieldInfo(tableModel *ModelInfo, field reflect.Value, tField reflect.StructField, vType reflect.Type, fillType int) {
+	tagItem := TagInfo{}
+	tag := vType.Field(i).Tag
+	key := tag.Get("db")
+	if key == "" {
+		key = tag.Get("json")
+	} else {
+		if key == "-" {
+			return
 		}
-		tagItem.Column = key
-		if strings.ToLower(key) == "id" {
-			tableModel.PrimaryKey = key
-		}
-		if field.Kind() == reflect.Ptr {
-			if field.IsNil() {
-				var autoFunc FillFunc
-				if fillType == 1 {
-					autoFunc = insertFill[key]
-				} else if fillType == 2 {
-					autoFunc = updateFill[key]
-				} else {
-					continue
-				}
-				if autoFunc == nil {
-					continue
-				}
-				val := autoFunc()
-				if val == nil || val == "" {
-					continue
-				}
-				field.Set(reflect.ValueOf(&val))
+		if strings.Contains(key, ",") {
+			ks := strings.Split(key, ",")
+			key = ks[0]
+			pk := ks[1]
+			if pk == "primary_key" || pk == "primaryKey" || pk == "pk" {
+				tableModel.PrimaryKey = key
 			}
-		} else if field.IsZero() {
+		}
+	}
+	if key == "" {
+		key = sc.GetUnderscore(tField.Name)
+	}
+	tagItem.Column = key
+	if strings.ToLower(key) == "id" {
+		tableModel.PrimaryKey = key
+	}
+	if field.Kind() == reflect.Ptr {
+		if field.IsNil() {
 			var autoFunc FillFunc
 			if fillType == 1 {
 				autoFunc = insertFill[key]
 			} else if fillType == 2 {
 				autoFunc = updateFill[key]
 			} else {
-				continue
+				return
 			}
 			if autoFunc == nil {
-				continue
+				return
 			}
 			val := autoFunc()
 			if val == nil || val == "" {
-				continue
+				return
 			}
-			field.Set(reflect.ValueOf(val))
+			field.Set(reflect.ValueOf(&val))
 		}
-
-		keyword := tag.Get("keyword")
-		if keyword == "" {
-			keyword = "eq"
-		}
-		ks := strings.Split(keyword, ",")
-		kTag := KeywordTag{}
-		kTag.Type = ks[0]
-		if len(ks) >= 2 {
-			kTag.Column = ks[1]
+	} else if field.IsZero() {
+		var autoFunc FillFunc
+		if fillType == 1 {
+			autoFunc = insertFill[key]
+		} else if fillType == 2 {
+			autoFunc = updateFill[key]
 		} else {
-			kTag.Column = key
+			return
 		}
-
-		switch field.Kind() {
-		case reflect.String:
-			if field.String() == "-" {
-				tableModel.values = append(tableModel.values, "")
-			} else {
-				tableModel.values = append(tableModel.values, field.String())
-			}
-		case reflect.Int64 | reflect.Int32 | reflect.Int:
-			tableModel.values = append(tableModel.values, field.Int())
-		case reflect.Float32 | reflect.Float64:
-			tableModel.values = append(tableModel.values, field.Float())
-		case reflect.Bool:
-			tableModel.values = append(tableModel.values, field.Bool())
-		case reflect.Ptr:
-			tableModel.values = append(tableModel.values, field.Elem().Interface())
-		default:
-			continue
+		if autoFunc == nil {
+			return
 		}
-
-		tagItem.Keyword = kTag
-		tableModel.tags = append(tableModel.tags, tagItem)
+		val := autoFunc()
+		if val == nil || val == "" {
+			return
+		}
+		field.Set(reflect.ValueOf(val))
 	}
-	return tableModel
+
+	keyword := tag.Get("keyword")
+	if keyword == "" {
+		keyword = "eq"
+	}
+	ks := strings.Split(keyword, ",")
+	kTag := KeywordTag{}
+	kTag.Type = ks[0]
+	if len(ks) >= 2 {
+		kTag.Column = ks[1]
+	} else {
+		kTag.Column = key
+	}
+
+	switch field.Kind() {
+	case reflect.String:
+		if field.String() == "-" {
+			tableModel.values = append(tableModel.values, "")
+		} else {
+			tableModel.values = append(tableModel.values, field.String())
+		}
+	case reflect.Int64 | reflect.Int32 | reflect.Int:
+		tableModel.values = append(tableModel.values, field.Int())
+	case reflect.Float32 | reflect.Float64:
+		tableModel.values = append(tableModel.values, field.Float())
+	case reflect.Bool:
+		tableModel.values = append(tableModel.values, field.Bool())
+	case reflect.Ptr:
+		tableModel.values = append(tableModel.values, field.Elem().Interface())
+	default:
+		return
+	}
+
+	tagItem.Keyword = kTag
+	tableModel.tags = append(tableModel.tags, tagItem)
 }
 
 type ModelInfo struct {
