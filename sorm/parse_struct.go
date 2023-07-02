@@ -1,7 +1,6 @@
 package sorm
 
 import (
-	"fmt"
 	"reflect"
 	"strings"
 
@@ -112,8 +111,7 @@ func GetField(obj interface{}, fillType int) *StructInfo {
 			}
 
 			value, _ := reflections.GetField(obj, fName)
-			fmt.Println(value, value == nil, value == "nil", value == "<nil>")
-			if value == nil || value == "" || value == "<nil>" {
+			if value == nil || value == "" || reflect.ValueOf(value).IsNil() {
 				var autoFunc FillFunc
 				if fillType == 1 {
 					autoFunc = insertFill[item.TagDB]
@@ -132,7 +130,7 @@ func GetField(obj interface{}, fillType int) *StructInfo {
 				value = val
 				reflections.SetField(obj, fName, value)
 			}
-			if value == nil || value == "<nil>" {
+			if value == nil || reflect.ValueOf(value).IsNil() {
 				continue
 			}
 			switch value.(type) {
