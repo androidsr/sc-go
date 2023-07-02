@@ -1,7 +1,6 @@
 package wsocket
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -99,7 +98,6 @@ func (m *Wsocket) handler(userId string, client *websocket.Conn) {
 				client.Close()
 				isRun = false
 			}
-			fmt.Println("执行ping 定时器检查。。。")
 		}
 	}()
 	for isRun {

@@ -174,16 +174,18 @@ func updateSQL(tableName string, columns []string, values []interface{}, conditi
 	sets := bytes.Buffer{}
 	conds := bytes.Buffer{}
 	setValues := make([]interface{}, 0)
+	condValues := make([]interface{}, 0)
 	for i, column := range columns {
 		if sc.Contains(condition, column) {
 			conds.WriteString(fmt.Sprintf(" and %s = ?", column))
+			condValues = append(condValues, values[i])
 		} else {
 			sets.WriteString(fmt.Sprintf(" %s = ?,", column))
+			setValues = append(setValues, values[i])
 		}
-		setValues = append(setValues, values[i])
 	}
 	sql := fmt.Sprintf("update %s set %s where 1=1 %s", tableName, sets.String()[:sets.Len()-1], conds.String())
-	return sql, setValues
+	return sql, append(setValues, condValues...)
 }
 
 // 删除数据
@@ -370,7 +372,7 @@ func (m *Sorm) SelectOneTx(tx *sqlx.Tx, data interface{}, query interface{}, col
 // 打印SQL信息
 func printSQL(sql string, values ...interface{}) {
 	fmt.Printf("执行SQL: %s\n ", sql)
-	fmt.Printf("输入参数: %v\n ", values...)
+	fmt.Printf("输入参数: %v\n ", values)
 }
 
 // 获取SQL执行影响行数
