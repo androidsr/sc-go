@@ -17,6 +17,19 @@ type SelectBuilder struct {
 	links  bool
 }
 
+func StructToBuilder(obj interface{}, sql string) *SelectBuilder {
+	info := GetField(obj, 0)
+	_, values := info.GetDbValues(QUERY)
+	if sql == "" {
+		sql = fmt.Sprintf("select * from %s where 1=1 ", info.TableName)
+	}
+	condi := buildQuery(info)
+	sql += condi.sql.String()
+	builder := Builder(sql)
+	builder.values = values
+	return builder
+}
+
 func Builder(sql string) *SelectBuilder {
 	builder := new(SelectBuilder)
 	builder.sql = *bytes.NewBufferString(sql)
