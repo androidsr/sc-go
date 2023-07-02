@@ -70,6 +70,9 @@ func GetField(obj interface{}, fillType int) *StructInfo {
 				continue
 			}
 			if item.TagDB == "" {
+				if strings.Contains(tagJson, ",") {
+					tagJson = strings.Split(tagJson, ",")[0]
+				}
 				item.TagDB = sc.GetUnderscore(tagJson)
 			}
 			if item.TagDB == "" {
