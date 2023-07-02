@@ -52,21 +52,30 @@ func GetField(obj interface{}, fillType int) *StructInfo {
 	var item FieldInfo
 	for _, fName := range fields {
 		kind, _ := reflections.GetFieldKind(obj, fName)
+		tagDB, _ := reflections.GetFieldTag(obj, fName, "db")
+		tagKeyword, _ := reflections.GetFieldTag(obj, fName, "keyword")
+		tagColumn, _ := reflections.GetFieldTag(obj, fName, "column")
+		tagJson, _ := reflections.GetFieldTag(obj, fName, "json")
 		if kind == reflect.Struct {
 			value, _ := reflections.GetField(obj, fName)
+			if tagDB == "-" {
+				continue
+			}
+			if tagColumn == "-" {
+				continue
+			}
 			pResult := GetField(value, fillType)
 			result.Fields = append(result.Fields, pResult.Fields...)
 		} else {
 			item = FieldInfo{}
 			item.Name = fName
-			tagDB, _ := reflections.GetFieldTag(obj, fName, "db")
-			tagKeyword, _ := reflections.GetFieldTag(obj, fName, "keyword")
-			tagColumn, _ := reflections.GetFieldTag(obj, fName, "column")
-			tagJson, _ := reflections.GetFieldTag(obj, fName, "json")
 			item.TagDB = tagDB
 			item.TagKeyword = tagKeyword
 			item.TagColumn = tagColumn
 			if item.TagDB == "-" {
+				continue
+			}
+			if item.TagColumn == "-" {
 				continue
 			}
 			if item.TagDB == "" {

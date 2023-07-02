@@ -51,6 +51,7 @@ func New(config *syaml.SqlxInfo) *Sorm {
 		return nil
 	}
 	insertFill = make(map[string]FillFunc, 0)
+	updateFill = make(map[string]FillFunc, 0)
 	pSqlx := &Sorm{db, config}
 	return pSqlx
 }

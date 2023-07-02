@@ -34,7 +34,7 @@ type OrderItem struct {
 }
 
 type SelectQueryDTO struct {
-	Page     PageInfo               `json:"page"`
+	Page     PageInfo               `json:"page" column:"-"`
 	Value    string                 `json:"value"`
 	Label    string                 `json:"label"`
 	SupperId string                 `json:"supperId"`
