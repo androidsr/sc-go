@@ -1,7 +1,6 @@
 package sorm
 
 import (
-	"fmt"
 	"reflect"
 	"strings"
 
@@ -76,9 +75,31 @@ func GetField(obj interface{}, fillType int) *StructInfo {
 			if item.TagDB == "" {
 				item.TagDB = sc.GetUnderscore(fName)
 			}
+			if strings.Contains(item.TagDB, ",") || strings.Contains(item.TagDB, " ") {
+				var ks []string
+				if strings.Contains(item.TagDB, ",") {
+					ks = strings.Split(item.TagDB, ",")
+				} else if strings.Contains(item.TagDB, " ") {
+					ks = strings.Split(item.TagDB, " ")
+				}
+				item.TagDB = ks[0]
+				pk := ks[1]
+				if pk == "primary_key" || pk == "primaryKey" || pk == "pk" {
+					result.PrimaryKey = item.TagDB
+				}
+			}
+			if result.PrimaryKey == "" && strings.ToLower(item.TagDB) == "id" {
+				result.PrimaryKey = item.TagDB
+			}
+			if item.TagColumn == "" {
+				item.TagColumn = item.TagDB
+			}
+			if item.TagKeyword == "" {
+				item.TagKeyword = "eq"
+			}
 
 			value, _ := reflections.GetField(obj, fName)
-			fmt.Println(fName, "==", value)
+
 			if value == nil || value == "" {
 				var autoFunc FillFunc
 				if fillType == 1 {
@@ -110,28 +131,7 @@ func GetField(obj interface{}, fillType int) *StructInfo {
 			if value == "-" {
 				value = ""
 			}
-			if strings.Contains(item.TagDB, ",") || strings.Contains(item.TagDB, " ") {
-				var ks []string
-				if strings.Contains(item.TagDB, ",") {
-					ks = strings.Split(item.TagDB, ",")
-				} else if strings.Contains(item.TagDB, " ") {
-					ks = strings.Split(item.TagDB, " ")
-				}
-				item.TagDB = ks[0]
-				pk := ks[1]
-				if pk == "primary_key" || pk == "primaryKey" || pk == "pk" {
-					result.PrimaryKey = item.TagDB
-				}
-			}
-			if result.PrimaryKey == "" && strings.ToLower(item.TagDB) == "id" {
-				result.PrimaryKey = item.TagDB
-			}
-			if item.TagColumn == "" {
-				item.TagColumn = item.TagDB
-			}
-			if item.TagKeyword == "" {
-				item.TagKeyword = "eq"
-			}
+
 			item.Value = value
 			result.Fields = append(result.Fields, item)
 		}
