@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"reflect"
+	"runtime"
 	"strings"
 
 	"github.com/androidsr/sc-go/model"
@@ -78,6 +79,16 @@ func (g *SGin) autoRegister() {
 			}
 			m := value.MethodByName(method.Name)
 			g.Handle(httpMethod, relativePath, func(c *gin.Context) {
+				defer func() {
+					if err := recover(); err != nil {
+						switch err.(type) {
+						case runtime.Error:
+							c.JSON(http.StatusOK, model.NewFail(5000, err.(error).Error()))
+						default:
+							c.JSON(http.StatusOK, model.NewFail(5000, err.(string)))
+						}
+					}
+				}()
 				threadLocal.Set(c)
 				defer threadLocal.Remove()
 				num := m.Type().NumIn()
