@@ -113,7 +113,7 @@ func (m *Wsocket) handler(userId string, client *websocket.Conn) {
 		if string(message) != "ping" {
 			m.Data <- Message{UserId: userId, Data: message}
 		} else {
-			client.WriteMessage(websocket.TextMessage, []byte("ping"))
+			client.WriteMessage(websocket.TextMessage, message)
 		}
 	}
 }
