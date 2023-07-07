@@ -105,7 +105,6 @@ func (m *Wsocket) handler(userId string, client *websocket.Conn) {
 	for isRun {
 		_, message, err := client.ReadMessage()
 		if err != nil {
-			log.Println("读取出错：", err.Error())
 			maxNotPing = 1000
 			isRun = false
 			break
@@ -114,7 +113,6 @@ func (m *Wsocket) handler(userId string, client *websocket.Conn) {
 		if string(message) != "ping" {
 			m.Data <- Message{UserId: userId, Data: message}
 		} else {
-			log.Println("接收到ping消息")
 			client.WriteMessage(websocket.TextMessage, message)
 		}
 	}
