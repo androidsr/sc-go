@@ -1,6 +1,7 @@
 package wsocket
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -94,6 +95,7 @@ func (m *Wsocket) handler(userId string, client *websocket.Conn) {
 			<-ticker.C
 			maxNotPing++
 			if maxNotPing > m.PingFail {
+				log.Println("客户端ping超时...")
 				ticker.Stop()
 				client.Close()
 				isRun = false
@@ -110,6 +112,8 @@ func (m *Wsocket) handler(userId string, client *websocket.Conn) {
 		maxNotPing = 0
 		if string(message) != "ping" {
 			m.Data <- Message{UserId: userId, Data: message}
+		} else {
+			client.WriteMessage(websocket.TextMessage, []byte("ping"))
 		}
 	}
 }
