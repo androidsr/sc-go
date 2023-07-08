@@ -35,6 +35,10 @@ func New(ip string, username string, password string, port ...int) *Cli {
 	return cli
 }
 
+func (c Cli) Close() error {
+	return c.client.Close()
+}
+
 // 连接
 func (c *Cli) connect() error {
 	config := ssh.ClientConfig{
