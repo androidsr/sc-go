@@ -76,28 +76,26 @@ func (c Cli) Run(shell string) (string, error) {
 }
 
 // ssh 远程命令执行
-func (c Cli) RunTerminal() (string, *ssh.Session, io.WriteCloser, io.Reader, error) {
+func (c Cli) RunTerminal() (*ssh.Session, io.WriteCloser, io.Reader, error) {
 	if c.client == nil {
 		if err := c.connect(); err != nil {
-			return "", nil, nil, nil, err
+			return nil, nil, nil, err
 		}
 	}
 	session, err := c.client.NewSession()
 	if err != nil {
-		return "", nil, nil, nil, err
+		return nil, nil, nil, err
 	}
-	sidByte, _ := session.CombinedOutput("echo $PPID")
-	sId := string(sidByte)
 	in, err := session.StdinPipe()
 	if err != nil {
-		return "", nil, nil, nil, err
+		return nil, nil, nil, err
 	}
 	out, err := session.StdoutPipe()
 	if err != nil {
-		return "", nil, nil, nil, err
+		return nil, nil, nil, err
 	}
 	if err = session.Shell(); err != nil {
-		return "", nil, nil, nil, err
+		return nil, nil, nil, err
 	}
-	return sId, session, in, out, nil
+	return session, in, out, nil
 }
