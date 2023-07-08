@@ -2,6 +2,7 @@ package scssh
 
 import (
 	"fmt"
+	"io"
 	"time"
 
 	"golang.org/x/crypto/ssh"
@@ -68,4 +69,29 @@ func (c Cli) Run(shell string) (string, error) {
 
 	c.LastResult = string(buf)
 	return c.LastResult, err
+}
+
+// ssh 远程命令执行
+func (c Cli) RunTerminal(shell string) (*ssh.Session, io.WriteCloser, io.Reader, error) {
+	if c.client == nil {
+		if err := c.connect(); err != nil {
+			return nil, nil, nil, err
+		}
+	}
+	session, err := c.client.NewSession()
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	in, err := session.StdinPipe()
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	out, err := session.StdoutPipe()
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	if err = session.Shell(); err != nil {
+		return nil, nil, nil, err
+	}
+	return session, in, out, nil
 }
