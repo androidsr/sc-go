@@ -72,7 +72,7 @@ func (c Cli) Run(shell string) (string, error) {
 }
 
 // ssh 远程命令执行
-func (c Cli) RunTerminal(shell string) (*ssh.Session, io.WriteCloser, io.Reader, error) {
+func (c Cli) RunTerminal() (*ssh.Session, io.WriteCloser, io.Reader, error) {
 	if c.client == nil {
 		if err := c.connect(); err != nil {
 			return nil, nil, nil, err
