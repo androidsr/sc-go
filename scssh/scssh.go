@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"strings"
 	"time"
 
@@ -19,6 +20,8 @@ type Cli struct {
 	Port       int         //端口号
 	client     *ssh.Client //ssh客户端
 	LastResult string      //最近一次Run的结果
+	authMode   string      //认证方式
+	publicKey  ssh.AuthMethod
 }
 
 // 创建命令行对象
@@ -26,11 +29,16 @@ type Cli struct {
 // @param username 用户名
 // @param password 密码
 // @param port 端口号,默认22
-func New(ip string, username string, password string, port ...int) *Cli {
+func NewLogin(authMode, ip, username, secret string, port ...int) *Cli {
 	cli := new(Cli)
 	cli.IP = ip
 	cli.Username = username
-	cli.Password = password
+	cli.authMode = authMode
+	if authMode == "1" {
+		cli.Password = secret
+	} else {
+		cli.GetPublicKey(secret)
+	}
 	if len(port) <= 0 {
 		cli.Port = 22
 	} else {
@@ -45,17 +53,43 @@ func (c *Cli) Close() error {
 }
 
 // 连接
+func (c *Cli) GetPublicKey(keyPath string) error {
+	var key []byte
+	var err error
+	if strings.HasPrefix(keyPath, "/") {
+		key, err = ioutil.ReadFile(keyPath)
+		if err != nil {
+			return err
+		}
+	} else {
+		key = []byte(keyPath)
+	}
+	signer, err := ssh.ParsePrivateKey(key)
+	if err != nil {
+		return err
+	}
+	c.publicKey = ssh.PublicKeys(signer)
+	return nil
+}
+
+// 连接
 func (c *Cli) connect() error {
 	defer func() {
 		recover()
 	}()
+
 	config := ssh.ClientConfig{
 		User:            c.Username,
-		Auth:            []ssh.AuthMethod{ssh.Password(c.Password)},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //这个可以, 但是不够安全
-		Timeout:         10 * time.Second,
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		Timeout:         5 * time.Second,
+	}
+	if c.authMode == "1" {
+		config.Auth = []ssh.AuthMethod{ssh.Password(c.Password)}
+	} else {
+		config.Auth = []ssh.AuthMethod{c.publicKey}
 	}
 	addr := fmt.Sprintf("%s:%d", c.IP, c.Port)
+
 	sshClient, err := ssh.Dial("tcp", addr, &config)
 	if err != nil {
 		return err
