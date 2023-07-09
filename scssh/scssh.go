@@ -136,22 +136,9 @@ func (t Terminal) ReadBuffer(buf *bytes.Buffer) error {
 }
 
 func (t Terminal) ReadAll() (string, error) {
-	var state string
-	buf := bytes.Buffer{}
-	for {
-		line, err := t.output.ReadString('\n')
-		if err != nil || strings.HasSuffix(strings.TrimSpace(line), "sc-finish:") {
-			state = strings.TrimSpace(line)
-			break
-		}
-		state = strings.TrimSpace(state)
-		buf.WriteString(strings.TrimSpace(line))
-		buf.WriteByte('\n')
-	}
-	if state != "sc-finish:0" {
-		return buf.String(), errors.New("命令执行失败")
-	}
-	return buf.String(), nil
+	buf := new(bytes.Buffer)
+	err := t.ReadBuffer(buf)
+	return buf.String(), err
 }
 
 func (t Terminal) Close() error {
