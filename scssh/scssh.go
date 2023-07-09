@@ -29,15 +29,14 @@ type Cli struct {
 // @param username 用户名
 // @param password 密码
 // @param port 端口号,默认22
-func New(authMode, ip, username, secret string, port ...int) *Cli {
+func New(authMode, ip, username, password, publicKey string, port ...int) *Cli {
 	cli := new(Cli)
 	cli.IP = ip
 	cli.Username = username
 	cli.authMode = authMode
-	if authMode == "1" {
-		cli.Password = secret
-	} else {
-		cli.GetPublicKey(secret)
+	cli.Password = password
+	if authMode != "1" {
+		cli.GetPublicKey(publicKey)
 	}
 	if len(port) <= 0 {
 		cli.Port = 22
