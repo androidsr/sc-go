@@ -39,7 +39,8 @@ func New(ip string, username string, password string, port ...int) *Cli {
 	return cli
 }
 
-func (c Cli) Close() error {
+func (c *Cli) Close() error {
+	fmt.Println(c, c.client)
 	return c.client.Close()
 }
 
@@ -62,7 +63,7 @@ func (c *Cli) connect() error {
 
 // 执行shell
 // @param shell shell脚本命令
-func (c Cli) Run(shell string) (string, error) {
+func (c *Cli) Run(shell string) (string, error) {
 	if c.client == nil {
 		if err := c.connect(); err != nil {
 			return "", err
@@ -80,7 +81,7 @@ func (c Cli) Run(shell string) (string, error) {
 }
 
 // ssh 远程命令执行
-func (c Cli) NewTerminal() (*Terminal, error) {
+func (c *Cli) NewTerminal() (*Terminal, error) {
 	if c.client == nil {
 		if err := c.connect(); err != nil {
 			return nil, err
@@ -101,7 +102,13 @@ func (c Cli) NewTerminal() (*Terminal, error) {
 	if err = session.Shell(); err != nil {
 		return nil, err
 	}
-	terminal := &Terminal{cli: &c, session: session, input: in, output: bufio.NewReader(out)}
+	terminal := &Terminal{cli: c, session: session, input: in, output: bufio.NewReader(out)}
+	terminal.Write("echo $$")
+	data, err := terminal.ReadString('\n')
+	if err != nil {
+		return nil, err
+	}
+	terminal.pid = strings.TrimSpace(data)
 	return terminal, nil
 }
 
@@ -113,35 +120,33 @@ type Terminal struct {
 	output  *bufio.Reader
 }
 
-func (t Terminal) Write(shell string) {
+func (t *Terminal) Write(shell string) {
 	t.input.Write([]byte(shell + ";echo sc-finish:$?;\n"))
 }
 
-func (t Terminal) ReadBuffer(buf *bytes.Buffer) error {
+func (t *Terminal) ReadString(delim byte, callback ...func(data string)) (string, error) {
 	var state string
+	buf := bytes.Buffer{}
 	for {
 		line, err := t.output.ReadString('\n')
-		if err != nil || strings.HasSuffix(strings.TrimSpace(line), "sc-finish:") {
+		if err != nil || strings.HasPrefix(strings.TrimSpace(line), "sc-finish:") {
 			state = strings.TrimSpace(line)
 			break
+		}
+		if callback != nil {
+			callback[0](line)
 		}
 		state = strings.TrimSpace(state)
 		buf.WriteString(strings.TrimSpace(line))
 		buf.WriteByte('\n')
 	}
 	if state != "sc-finish:0" {
-		return errors.New("命令执行失败")
+		return buf.String(), errors.New("命令执行失败")
 	}
-	return nil
+	return buf.String(), nil
 }
 
-func (t Terminal) ReadAll() (string, error) {
-	buf := new(bytes.Buffer)
-	err := t.ReadBuffer(buf)
-	return buf.String(), err
-}
-
-func (t Terminal) Close() error {
+func (t *Terminal) Close() error {
 	_, err := t.cli.Run("kill -9 -" + t.pid)
 	t.input.Close()
 	t.session.Close()
