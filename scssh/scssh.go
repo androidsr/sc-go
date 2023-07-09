@@ -46,6 +46,9 @@ func (c *Cli) Close() error {
 
 // 连接
 func (c *Cli) connect() error {
+	defer func() {
+		recover()
+	}()
 	config := ssh.ClientConfig{
 		User:            c.Username,
 		Auth:            []ssh.AuthMethod{ssh.Password(c.Password)},
@@ -64,6 +67,9 @@ func (c *Cli) connect() error {
 // 执行shell
 // @param shell shell脚本命令
 func (c *Cli) Run(shell string) (string, error) {
+	defer func() {
+		recover()
+	}()
 	if c.client == nil {
 		if err := c.connect(); err != nil {
 			return "", err
@@ -82,6 +88,9 @@ func (c *Cli) Run(shell string) (string, error) {
 
 // ssh 远程命令执行
 func (c *Cli) NewTerminal() (*Terminal, error) {
+	defer func() {
+		recover()
+	}()
 	if c.client == nil {
 		if err := c.connect(); err != nil {
 			return nil, err
@@ -121,10 +130,16 @@ type Terminal struct {
 }
 
 func (t *Terminal) Write(shell string) {
+	defer func() {
+		recover()
+	}()
 	t.input.Write([]byte(shell + ";echo sc-finish:$?;\n"))
 }
 
 func (t *Terminal) ReadString(delim byte, callback ...func(data string)) (string, error) {
+	defer func() {
+		recover()
+	}()
 	var state string
 	buf := bytes.Buffer{}
 	for {
@@ -146,7 +161,18 @@ func (t *Terminal) ReadString(delim byte, callback ...func(data string)) (string
 	return buf.String(), nil
 }
 
+// 关闭当前终端
 func (t *Terminal) Close() error {
+	t.input.Close()
+	err := t.session.Close()
+	return err
+}
+
+// 关闭当前终端以及子进程
+func (t *Terminal) CloseAll() error {
+	defer func() {
+		recover()
+	}()
 	_, err := t.cli.Run("kill -9 -" + t.pid)
 	t.input.Close()
 	t.session.Close()
