@@ -1,8 +1,11 @@
 package scssh
 
 import (
+	"bufio"
+	"errors"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/ssh"
@@ -76,26 +79,60 @@ func (c Cli) Run(shell string) (string, error) {
 }
 
 // ssh 远程命令执行
-func (c Cli) RunTerminal() (*ssh.Session, io.WriteCloser, io.Reader, error) {
+func (c Cli) NewTerminal() (*Terminal, error) {
 	if c.client == nil {
 		if err := c.connect(); err != nil {
-			return nil, nil, nil, err
+			return nil, err
 		}
 	}
 	session, err := c.client.NewSession()
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
 	in, err := session.StdinPipe()
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
 	out, err := session.StdoutPipe()
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
 	if err = session.Shell(); err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
-	return session, in, out, nil
+	terminal := &Terminal{cli: c, session: session, input: in, output: bufio.NewReader(out)}
+	return terminal, nil
+}
+
+type Terminal struct {
+	cli     Cli
+	pid     string
+	session *ssh.Session
+	input   io.WriteCloser
+	output  *bufio.Reader
+}
+
+func (t Terminal) Write(shell string) {
+	t.input.Write([]byte(shell + ";echo $?;echo sc\n"))
+}
+
+func (t Terminal) Read(wr io.WriteCloser) error {
+	var state string
+	for {
+		line, err := t.output.ReadString('\n')
+		if err != nil || strings.TrimSpace(line) == "sc" {
+			break
+		}
+		state = strings.TrimSpace(state)
+		wr.Write([]byte(strings.TrimSpace(line) + "\n"))
+	}
+	if state != "0" {
+		return errors.New("命令执行失败")
+	}
+	return nil
+}
+
+func (t Terminal) Close() error {
+	_, err := t.cli.Run("kill -9 -" + t.pid)
+	return err
 }
