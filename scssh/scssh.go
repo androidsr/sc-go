@@ -29,7 +29,7 @@ type Cli struct {
 // @param username 用户名
 // @param password 密码
 // @param port 端口号,默认22
-func NewLogin(authMode, ip, username, secret string, port ...int) *Cli {
+func New(authMode, ip, username, secret string, port ...int) *Cli {
 	cli := new(Cli)
 	cli.IP = ip
 	cli.Username = username
