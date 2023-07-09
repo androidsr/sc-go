@@ -2,6 +2,7 @@ package scssh
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -100,12 +101,12 @@ func (c Cli) NewTerminal() (*Terminal, error) {
 	if err = session.Shell(); err != nil {
 		return nil, err
 	}
-	terminal := &Terminal{cli: c, session: session, input: in, output: bufio.NewReader(out)}
+	terminal := &Terminal{cli: &c, session: session, input: in, output: bufio.NewReader(out)}
 	return terminal, nil
 }
 
 type Terminal struct {
-	cli     Cli
+	cli     *Cli
 	pid     string
 	session *ssh.Session
 	input   io.WriteCloser
@@ -113,26 +114,49 @@ type Terminal struct {
 }
 
 func (t Terminal) Write(shell string) {
-	t.input.Write([]byte(shell + ";echo $?;echo sc\n"))
+	t.input.Write([]byte(shell + ";echo sc-finish:$?;\n"))
 }
 
-func (t Terminal) Read(wr io.WriteCloser) error {
+func (t Terminal) ReadBuffer(buf *bytes.Buffer) error {
 	var state string
 	for {
 		line, err := t.output.ReadString('\n')
-		if err != nil || strings.TrimSpace(line) == "sc" {
+		if err != nil || strings.HasSuffix(strings.TrimSpace(line), "sc-finish:") {
+			state = strings.TrimSpace(line)
 			break
 		}
 		state = strings.TrimSpace(state)
-		wr.Write([]byte(strings.TrimSpace(line) + "\n"))
+		buf.WriteString(strings.TrimSpace(line))
+		buf.WriteByte('\n')
 	}
-	if state != "0" {
+	if state != "sc-finish:0" {
 		return errors.New("命令执行失败")
 	}
 	return nil
 }
 
+func (t Terminal) ReadAll() (string, error) {
+	var state string
+	buf := bytes.Buffer{}
+	for {
+		line, err := t.output.ReadString('\n')
+		if err != nil || strings.HasSuffix(strings.TrimSpace(line), "sc-finish:") {
+			state = strings.TrimSpace(line)
+			break
+		}
+		state = strings.TrimSpace(state)
+		buf.WriteString(strings.TrimSpace(line))
+		buf.WriteByte('\n')
+	}
+	if state != "sc-finish:0" {
+		return buf.String(), errors.New("命令执行失败")
+	}
+	return buf.String(), nil
+}
+
 func (t Terminal) Close() error {
 	_, err := t.cli.Run("kill -9 -" + t.pid)
+	t.input.Close()
+	t.session.Close()
 	return err
 }
