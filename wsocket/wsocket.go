@@ -12,15 +12,11 @@ var (
 	Socket *Wsocket
 )
 
-// 定义回调接口获取用户信息
-type UserInfo func(w http.ResponseWriter, r *http.Request) string
-
-func New(upgrader websocket.Upgrader, interval time.Duration, pingFail int, user UserInfo) *Wsocket {
+func New(upgrader websocket.Upgrader, interval time.Duration, pingFail int) *Wsocket {
 	sSocket := new(Wsocket)
 	sSocket.clients = make(map[string]*websocket.Conn, 0)
 	sSocket.Data = make(chan Message, 100)
 	sSocket.upgrader = upgrader
-	sSocket.user = user
 	sSocket.Interval = interval
 	sSocket.PingFail = pingFail
 	sSocket.clientList = make([]*websocket.Conn, 0)
@@ -37,7 +33,6 @@ type Wsocket struct {
 	upgrader   websocket.Upgrader
 	clients    map[string]*websocket.Conn
 	clientList []*websocket.Conn
-	user       UserInfo
 	Data       chan Message
 	PingFail   int
 	Interval   time.Duration
@@ -49,14 +44,12 @@ func (m *Wsocket) GetSize() int {
 }
 
 // 绑定客户端
-func (m *Wsocket) Register(w http.ResponseWriter, r *http.Request) error {
+func (m *Wsocket) Register(userId string, w http.ResponseWriter, r *http.Request) error {
 	client, err := m.upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		return err
 	}
-	var userId string
-	if m.user != nil {
-		userId = m.user(w, r)
+	if userId != "" {
 		m.clients[userId] = client
 	} else {
 		m.clientList = append(m.clientList, client)
