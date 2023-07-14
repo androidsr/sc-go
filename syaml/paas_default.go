@@ -8,6 +8,7 @@ type ScInfo struct {
 	Application string         `yaml:"application"`
 	Gin         *GinInfo       `yaml:"gin"`
 	Sqlx        *SqlxInfo      `yaml:"sqlx"`
+	Gorm        *GormInfo      `yaml:"gorm"`
 	Snowflake   *SnowflakeInfo `yaml:"snowflake"`
 	Proxy       *ProxyInfo     `yaml:"proxy"`
 	Nacos       *NacosInfo     `yaml:"nacos"`
@@ -24,6 +25,15 @@ type GinScanInfo struct {
 	Pkg    string `yaml:"pkg"`
 	Filter string `yaml:"filter"`
 }
+
+type GormInfo struct {
+	Driver  string `yaml:"driver"`
+	Url     string `yaml:"url"`
+	MaxOpen int    `yaml:"maxOpen"`
+	MaxIdle int    `yaml:"maxIdle"`
+	ShowSql bool   `yaml:"showSql"`
+}
+
 type SqlxInfo struct {
 	Driver  string `yaml:"driver"`
 	Url     string `yaml:"url"`

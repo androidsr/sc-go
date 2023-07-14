@@ -38,10 +38,10 @@ var (
 
 type Sgorm struct {
 	*gorm.DB
-	config *syaml.SqlxInfo
+	config *syaml.GormInfo
 }
 
-func New(config *syaml.SqlxInfo) *Sgorm {
+func New(config *syaml.GormInfo) *Sgorm {
 	var dialector gorm.Dialector
 	switch config.Driver {
 	case "mysql":
@@ -51,12 +51,16 @@ func New(config *syaml.SqlxInfo) *Sgorm {
 	case "sqlite":
 		dialector = sqlite.Open(config.Url)
 	}
+	var showLog logger.Interface
+	if config.ShowSql {
+		showLog = logger.Default.LogMode(logger.Info)
+	}
 	db, err := gorm.Open(dialector, &gorm.Config{
 		SkipDefaultTransaction: true,
 		NamingStrategy: schema.NamingStrategy{
 			SingularTable: true,
 		},
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger: showLog,
 	})
 	if err != nil {
 		log.Printf("数据库初始化失败:%s", err.Error())

@@ -20,6 +20,14 @@ sc:
     maxIdle: 5
     maxOpen: 3
 
+##########gorm配置项##########
+  gorm:
+    driver: mysql
+    url: root:wisesoft@tcp(172.16.9.19:3306)/codemg?charset=utf8
+    showSql: true
+    maxIdle: 5
+    maxOpen: 3
+
 ##########雪花算法配置项##########
   snowflake:
     workerId: 1
