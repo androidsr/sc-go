@@ -11,6 +11,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/schema"
 )
 
 const (
@@ -53,6 +54,9 @@ func New(config *syaml.SqlxInfo) *Sgorm {
 	}
 	db, err := gorm.Open(dialector, &gorm.Config{
 		SkipDefaultTransaction: true,
+		NamingStrategy: schema.NamingStrategy{
+			SingularTable: true,
+		},
 	})
 	if err != nil {
 		log.Printf("数据库初始化失败:%s", err.Error())
