@@ -1,4 +1,4 @@
-package sorm
+package sgorm
 
 import (
 	"bytes"
