@@ -203,7 +203,7 @@ func (m *Sgorm) SelectPage(data interface{}, page model.PageInfo, sql string, va
 		sql = fmt.Sprintf("select * from (%s) t %s LIMIT ? OFFSET ?", sql, orderBy.String())
 		values = append(values, page.Size, offset)
 	}
-	err := m.DB.Raw(sql, values...).Scan(data)
+	err := m.DB.Raw(sql, values...).Scan(data).Error
 	if err != nil {
 		log.Printf("执行SQL异常: %v\n", err)
 		return nil
