@@ -1,4 +1,4 @@
-package sorm
+package sbuilder
 
 import (
 	"bytes"
@@ -10,10 +10,27 @@ import (
 	"github.com/opentracing/opentracing-go/log"
 )
 
+const (
+	Eq         = "eq"
+	Ne         = "ne"
+	In         = "in"
+	NotIn      = "notIn"
+	Gt         = "gt"
+	Lt         = "lt"
+	Ge         = "ge"
+	Le         = "le"
+	Between    = "between"
+	NotBetween = "notBetween"
+	Like       = "like"
+	NotLike    = "notLike"
+	LikeLeft   = "likeLeft"
+	LikeRight  = "likeRight"
+)
+
 type SelectBuilder struct {
-	sql    bytes.Buffer
+	Sql    bytes.Buffer
 	link   string
-	values []interface{}
+	Values []interface{}
 	links  bool
 }
 
@@ -23,22 +40,22 @@ func StructToBuilder(obj interface{}, sql string) *SelectBuilder {
 	if sql == "" {
 		sql = fmt.Sprintf("select * from %s where 1=1 ", info.TableName)
 	}
-	condi := buildQuery(info)
-	sql += condi.sql.String()
+	condi := BuildQuery(info)
+	sql += condi.Sql.String()
 	builder := Builder(sql)
-	builder.values = values
+	builder.Values = values
 	return builder
 }
 
 func Builder(sql string) *SelectBuilder {
 	builder := new(SelectBuilder)
-	builder.sql = *bytes.NewBufferString(sql)
+	builder.Sql = *bytes.NewBufferString(sql)
 	builder.link = "and"
 	builder.links = false
-	builder.values = make([]interface{}, 0)
+	builder.Values = make([]interface{}, 0)
 	if sql != "" {
 		if !strings.Contains(sql, " where ") {
-			builder.sql.WriteString(" where 1=1 ")
+			builder.Sql.WriteString(" where 1=1 ")
 		}
 	}
 	return builder
@@ -49,11 +66,11 @@ func (m *SelectBuilder) Eq(column string, value interface{}) string {
 		return ""
 	}
 	sql := fmt.Sprintf(" %s %s = ? ", m.link, column)
-	m.values = append(m.values, value)
+	m.Values = append(m.Values, value)
 	if m.links {
 		return sql
 	} else {
-		m.sql.WriteString(sql)
+		m.Sql.WriteString(sql)
 	}
 	return ""
 }
@@ -63,11 +80,11 @@ func (m *SelectBuilder) Ne(column string, value interface{}) string {
 		return ""
 	}
 	sql := fmt.Sprintf(" %s %s <> ? ", m.link, column)
-	m.values = append(m.values, value)
+	m.Values = append(m.Values, value)
 	if m.links {
 		return sql
 	} else {
-		m.sql.WriteString(sql)
+		m.Sql.WriteString(sql)
 	}
 	return ""
 }
@@ -79,11 +96,11 @@ func (m *SelectBuilder) In(column string, value interface{}) string {
 	v := sc.AssertSliceType(value)
 	if len(v) != 0 {
 		sql := fmt.Sprintf(" %s %s in(%s) ", m.link, column, Placeholders(len(v)))
-		m.values = append(m.values, v...)
+		m.Values = append(m.Values, v...)
 		if m.links {
 			return sql
 		} else {
-			m.sql.WriteString(sql)
+			m.Sql.WriteString(sql)
 		}
 	}
 	return ""
@@ -96,11 +113,11 @@ func (m *SelectBuilder) NotIn(column string, value interface{}) string {
 	v := sc.AssertSliceType(value)
 	if len(v) != 0 {
 		sql := fmt.Sprintf(" %s %s not in(%s) ", m.link, column, Placeholders(len(v)))
-		m.values = append(m.values, v...)
+		m.Values = append(m.Values, v...)
 		if m.links {
 			return sql
 		} else {
-			m.sql.WriteString(sql)
+			m.Sql.WriteString(sql)
 		}
 	}
 	return ""
@@ -111,11 +128,11 @@ func (m *SelectBuilder) Gt(column string, value interface{}) string {
 		return ""
 	}
 	sql := fmt.Sprintf(" %s %s > ? ", m.link, column)
-	m.values = append(m.values, value)
+	m.Values = append(m.Values, value)
 	if m.links {
 		return sql
 	} else {
-		m.sql.WriteString(sql)
+		m.Sql.WriteString(sql)
 	}
 	return ""
 }
@@ -125,11 +142,11 @@ func (m *SelectBuilder) Lt(column string, value interface{}) string {
 		return ""
 	}
 	sql := fmt.Sprintf(" %s %s < ? ", m.link, column)
-	m.values = append(m.values, value)
+	m.Values = append(m.Values, value)
 	if m.links {
 		return sql
 	} else {
-		m.sql.WriteString(sql)
+		m.Sql.WriteString(sql)
 	}
 	return ""
 }
@@ -139,11 +156,11 @@ func (m *SelectBuilder) Ge(column string, value interface{}) string {
 		return ""
 	}
 	sql := fmt.Sprintf(" %s %s >= ? ", m.link, column)
-	m.values = append(m.values, value)
+	m.Values = append(m.Values, value)
 	if m.links {
 		return sql
 	} else {
-		m.sql.WriteString(sql)
+		m.Sql.WriteString(sql)
 	}
 	return ""
 }
@@ -153,11 +170,11 @@ func (m *SelectBuilder) Le(column string, value interface{}) string {
 		return ""
 	}
 	sql := fmt.Sprintf(" %s %s <= ? ", m.link, column)
-	m.values = append(m.values, value)
+	m.Values = append(m.Values, value)
 	if m.links {
 		return sql
 	} else {
-		m.sql.WriteString(sql)
+		m.Sql.WriteString(sql)
 	}
 	return ""
 }
@@ -167,11 +184,11 @@ func (m *SelectBuilder) Between(column string, value BetweenInfo) string {
 		return ""
 	}
 	sql := fmt.Sprintf(" %s %s between ? and ? ", m.link, column)
-	m.values = append(m.values, value.Left, value.Right)
+	m.Values = append(m.Values, value.Left, value.Right)
 	if m.links {
 		return sql
 	} else {
-		m.sql.WriteString(sql)
+		m.Sql.WriteString(sql)
 	}
 	return ""
 }
@@ -181,11 +198,11 @@ func (m *SelectBuilder) NotBetween(column string, value BetweenInfo) string {
 		return ""
 	}
 	sql := fmt.Sprintf(" %s %s not between ? and ? ", m.link, column)
-	m.values = append(m.values, value.Left, value.Right)
+	m.Values = append(m.Values, value.Left, value.Right)
 	if m.links {
 		return sql
 	} else {
-		m.sql.WriteString(sql)
+		m.Sql.WriteString(sql)
 	}
 	return ""
 }
@@ -195,11 +212,11 @@ func (m *SelectBuilder) Like(column string, value interface{}) string {
 		return ""
 	}
 	sql := fmt.Sprintf(" %s %s like CONCAT('%s', ?, '%s') ", m.link, column, "%", "%")
-	m.values = append(m.values, value)
+	m.Values = append(m.Values, value)
 	if m.links {
 		return sql
 	} else {
-		m.sql.WriteString(sql)
+		m.Sql.WriteString(sql)
 	}
 	return ""
 }
@@ -209,11 +226,11 @@ func (m *SelectBuilder) NotLike(column string, value interface{}) string {
 		return ""
 	}
 	sql := fmt.Sprintf(" %s %s not like CONCAT('%s', ?, '%s') ", m.link, column, "%", "%")
-	m.values = append(m.values, value)
+	m.Values = append(m.Values, value)
 	if m.links {
 		return sql
 	} else {
-		m.sql.WriteString(sql)
+		m.Sql.WriteString(sql)
 	}
 	return ""
 }
@@ -223,11 +240,11 @@ func (m *SelectBuilder) LikeLeft(column string, value interface{}) string {
 		return ""
 	}
 	sql := fmt.Sprintf(" %s %s not like CONCAT('%s', ?) ", m.link, column, "%")
-	m.values = append(m.values, value)
+	m.Values = append(m.Values, value)
 	if m.links {
 		return sql
 	} else {
-		m.sql.WriteString(sql)
+		m.Sql.WriteString(sql)
 	}
 	return ""
 }
@@ -237,11 +254,11 @@ func (m *SelectBuilder) LikeRight(column string, value interface{}) string {
 		return ""
 	}
 	sql := fmt.Sprintf(" %s %s not like CONCAT(?, '%s') ", m.link, column, "%")
-	m.values = append(m.values, value)
+	m.Values = append(m.Values, value)
 	if m.links {
 		return sql
 	} else {
-		m.sql.WriteString(sql)
+		m.Sql.WriteString(sql)
 	}
 	return ""
 }
@@ -264,7 +281,7 @@ func (m *SelectBuilder) Ands(sql ...string) *SelectBuilder {
 		return m
 	}
 	m.link = "and"
-	m.sql.WriteString(" and (")
+	m.Sql.WriteString(" and (")
 	for i, v := range sql {
 		fmt.Println("执行and")
 		if v == "" {
@@ -274,9 +291,9 @@ func (m *SelectBuilder) Ands(sql ...string) *SelectBuilder {
 			v = strings.Replace(v, " and ", "", 1)
 			v = strings.Replace(v, " or ", "", 1)
 		}
-		m.sql.WriteString(fmt.Sprintf("%s ", v))
+		m.Sql.WriteString(fmt.Sprintf("%s ", v))
 	}
-	m.sql.WriteString(") ")
+	m.Sql.WriteString(") ")
 	m.link = "and"
 	m.links = false
 	return m
@@ -296,7 +313,7 @@ func (m *SelectBuilder) Ors(sql ...string) *SelectBuilder {
 		return m
 	}
 	m.link = "or"
-	m.sql.WriteString(" or (")
+	m.Sql.WriteString(" or (")
 	for i, v := range sql {
 		fmt.Println("执行or", v)
 		if v == "" {
@@ -308,19 +325,19 @@ func (m *SelectBuilder) Ors(sql ...string) *SelectBuilder {
 				v = strings.Replace(v, " or ", "", 1)
 			}
 		}
-		m.sql.WriteString(fmt.Sprintf("%s ", v))
+		m.Sql.WriteString(fmt.Sprintf("%s ", v))
 	}
-	m.sql.WriteString(") ")
+	m.Sql.WriteString(") ")
 	m.link = "and"
 	m.links = false
 	return m
 }
 
 func (m *SelectBuilder) Append(sql string) *SelectBuilder {
-	m.sql.WriteString(" " + sql)
+	m.Sql.WriteString(" " + sql)
 	return m
 }
 
 func (m *SelectBuilder) Build() (string, []interface{}) {
-	return m.sql.String(), m.values
+	return m.Sql.String(), m.Values
 }

@@ -9,32 +9,14 @@ import (
 	"strings"
 
 	"github.com/androidsr/sc-go/model"
+	"github.com/androidsr/sc-go/sbuilder"
 	"github.com/androidsr/sc-go/sc"
 	"github.com/androidsr/sc-go/syaml"
 	"github.com/jmoiron/sqlx"
 )
 
-const (
-	Eq         = "eq"
-	Ne         = "ne"
-	In         = "in"
-	NotIn      = "notIn"
-	Gt         = "gt"
-	Lt         = "lt"
-	Ge         = "ge"
-	Le         = "le"
-	Between    = "between"
-	NotBetween = "notBetween"
-	Like       = "like"
-	NotLike    = "notLike"
-	LikeLeft   = "likeLeft"
-	LikeRight  = "likeRight"
-)
-
 var (
-	DB         *Sorm
-	insertFill map[string]FillFunc
-	updateFill map[string]FillFunc
+	DB *Sorm
 )
 
 func New(config *syaml.SqlxInfo) *Sorm {
@@ -50,22 +32,8 @@ func New(config *syaml.SqlxInfo) *Sorm {
 		log.Printf("数据库连接异常：%s", err.Error())
 		return nil
 	}
-	insertFill = make(map[string]FillFunc, 0)
-	updateFill = make(map[string]FillFunc, 0)
 	pSqlx := &Sorm{db, config}
 	return pSqlx
-}
-
-// 自动填充处理
-type FillFunc func() any
-
-// 增加字段进行自动填充
-func AddInsertFill(column string, call FillFunc) {
-	insertFill[column] = call
-}
-
-func AddUpdateFill(column string, call FillFunc) {
-	updateFill[column] = call
 }
 
 type Sorm struct {
@@ -81,11 +49,11 @@ func (m *Sorm) Exists(obj interface{}) bool {
 
 // 按条件获取数据条数
 func (m *Sorm) GetCount(obj interface{}) int {
-	info := GetField(obj, 0)
-	builder := buildQuery(info)
-	sql := fmt.Sprintf("select count(*) from %s where 1=1 %s", info.TableName, builder.sql.String())
+	info := sbuilder.GetField(obj, 0)
+	builder := sbuilder.BuildQuery(info)
+	sql := fmt.Sprintf("select count(*) from %s where 1=1 %s", info.TableName, builder.Sql.String())
 	var count int
-	err := m.DB.Get(&count, sql, builder.values...)
+	err := m.DB.Get(&count, sql, builder.Values...)
 	if err != nil {
 		log.Printf("执行SQL异常:%s\n %v", sql, err)
 		return 0
@@ -108,8 +76,8 @@ func (m *Sorm) SelectCount(sql string, values ...interface{}) int {
 
 // 插入数据
 func (m *Sorm) Insert(obj interface{}) error {
-	info := GetField(obj, 1)
-	columns, values := info.GetDbValues(EXEC)
+	info := sbuilder.GetField(obj, 1)
+	columns, values := info.GetDbValues(sbuilder.EXEC)
 	sql := insertSQL(info.TableName, columns)
 	printSQL(sql, values...)
 	ret, err := m.DB.Exec(sql, values...)
@@ -118,8 +86,8 @@ func (m *Sorm) Insert(obj interface{}) error {
 
 // 插入数据（同一事物db）
 func (m *Sorm) InsertTx(db *sqlx.Tx, obj interface{}) error {
-	info := GetField(obj, 1)
-	column, values := info.GetDbValues(EXEC)
+	info := sbuilder.GetField(obj, 1)
+	column, values := info.GetDbValues(sbuilder.EXEC)
 	sql := insertSQL(info.TableName, column)
 	printSQL(sql, values...)
 	ret, err := db.Exec(sql, values...)
@@ -137,8 +105,8 @@ func insertSQL(tableName string, columns []string) string {
 
 // 按ID更新非空字段
 func (m *Sorm) UpdateById(obj interface{}) error {
-	info := GetField(obj, 2)
-	column, values := info.GetDbValues(EXEC)
+	info := sbuilder.GetField(obj, 2)
+	column, values := info.GetDbValues(sbuilder.EXEC)
 	sql, values := updateSQL(info.TableName, column, values, info.PrimaryKey)
 	printSQL(sql, values...)
 	ret, err := m.DB.Exec(sql, values...)
@@ -150,8 +118,8 @@ func (m *Sorm) Update(obj interface{}, condition ...string) error {
 	if len(condition) == 0 {
 		return errors.New("更新语句条件为空")
 	}
-	info := GetField(obj, 2)
-	column, values := info.GetDbValues(EXEC)
+	info := sbuilder.GetField(obj, 2)
+	column, values := info.GetDbValues(sbuilder.EXEC)
 	sql, values := updateSQL(info.TableName, column, values, info.PrimaryKey)
 	printSQL(sql, values...)
 	ret, err := m.DB.Exec(sql, values...)
@@ -163,8 +131,8 @@ func (m *Sorm) UpdateTx(db *sqlx.Tx, obj interface{}, condition ...string) error
 	if len(condition) == 0 {
 		return errors.New("更新语句条件为空")
 	}
-	info := GetField(obj, 2)
-	column, values := info.GetDbValues(EXEC)
+	info := sbuilder.GetField(obj, 2)
+	column, values := info.GetDbValues(sbuilder.EXEC)
 	sql, values := updateSQL(info.TableName, column, values, info.PrimaryKey)
 	printSQL(sql, values...)
 	ret, err := db.Exec(sql, values...)
@@ -191,8 +159,8 @@ func updateSQL(tableName string, columns []string, values []interface{}, conditi
 
 // 删除数据
 func (m *Sorm) Delete(obj interface{}) error {
-	info := GetField(obj, 0)
-	column, values := info.GetDbValues(EXEC)
+	info := sbuilder.GetField(obj, 0)
+	column, values := info.GetDbValues(sbuilder.EXEC)
 	sql := deleteSQL(info.TableName, column)
 	printSQL(sql, values...)
 	ret, err := m.DB.Exec(sql, values...)
@@ -201,8 +169,8 @@ func (m *Sorm) Delete(obj interface{}) error {
 
 // 删除数据（同一事务db）
 func (m *Sorm) DeleteTx(db *sqlx.Tx, obj interface{}) error {
-	info := GetField(obj, 0)
-	column, values := info.GetDbValues(EXEC)
+	info := sbuilder.GetField(obj, 0)
+	column, values := info.GetDbValues(sbuilder.EXEC)
 	sql := deleteSQL(info.TableName, column)
 	printSQL(sql, values...)
 	ret, err := db.Exec(sql, values...)
@@ -264,8 +232,8 @@ func (m *Sorm) SelectPage(data interface{}, page model.PageInfo, sql string, val
 
 // 查询集合
 func (m *Sorm) SelectList(data interface{}, query interface{}, columns ...string) error {
-	info := GetField(query, 0)
-	_, values := info.GetDbValues(QUERY)
+	info := sbuilder.GetField(query, 0)
+	_, values := info.GetDbValues(sbuilder.QUERY)
 	var cols string
 	if len(columns) == 0 {
 		cols = " * "
@@ -273,8 +241,8 @@ func (m *Sorm) SelectList(data interface{}, query interface{}, columns ...string
 		cols = strings.Join(columns, ", ")
 	}
 	sql := fmt.Sprintf("select %s from %s where 1=1 ", cols, info.TableName)
-	condi := buildQuery(info)
-	sql += condi.sql.String()
+	condi := sbuilder.BuildQuery(info)
+	sql += condi.Sql.String()
 	err := m.DB.Select(data, sql, values...)
 	if err != nil {
 		log.Printf("执行SQL异常:%v\n", err)
@@ -285,8 +253,8 @@ func (m *Sorm) SelectList(data interface{}, query interface{}, columns ...string
 
 // 查询集合
 func (m *Sorm) SelectListTx(tx *sqlx.Tx, data interface{}, query interface{}, columns ...string) error {
-	info := GetField(query, 0)
-	_, values := info.GetDbValues(QUERY)
+	info := sbuilder.GetField(query, 0)
+	_, values := info.GetDbValues(sbuilder.QUERY)
 	var cols string
 	if len(columns) == 0 {
 		cols = " * "
@@ -294,8 +262,8 @@ func (m *Sorm) SelectListTx(tx *sqlx.Tx, data interface{}, query interface{}, co
 		cols = strings.Join(columns, ", ")
 	}
 	sql := fmt.Sprintf("select %s from %s where 1=1 ", cols, info.TableName)
-	condi := buildQuery(info)
-	sql += condi.sql.String()
+	condi := sbuilder.BuildQuery(info)
+	sql += condi.Sql.String()
 	err := tx.Select(data, sql, values...)
 	if err != nil {
 		log.Printf("执行SQL异常:%v\n", err)
@@ -306,8 +274,8 @@ func (m *Sorm) SelectListTx(tx *sqlx.Tx, data interface{}, query interface{}, co
 
 // 查询一条记录
 func (m *Sorm) SelectOne(data interface{}, query interface{}, columns ...string) error {
-	info := GetField(query, 0)
-	_, values := info.GetDbValues(QUERY)
+	info := sbuilder.GetField(query, 0)
+	_, values := info.GetDbValues(sbuilder.QUERY)
 	var cols string
 	if len(columns) == 0 {
 		cols = " * "
@@ -315,8 +283,8 @@ func (m *Sorm) SelectOne(data interface{}, query interface{}, columns ...string)
 		cols = strings.Join(columns, ", ")
 	}
 	sql := fmt.Sprintf("select %s from %s where 1=1 ", cols, info.TableName)
-	condi := buildQuery(info)
-	sql += condi.sql.String()
+	condi := sbuilder.BuildQuery(info)
+	sql += condi.Sql.String()
 	printSQL(sql, values...)
 	err := m.DB.Get(data, sql, values...)
 	if err != nil {
@@ -328,8 +296,8 @@ func (m *Sorm) SelectOne(data interface{}, query interface{}, columns ...string)
 
 // 查询一条记录
 func (m *Sorm) GetOne(data interface{}, columns ...string) error {
-	info := GetField(data, 0)
-	_, values := info.GetDbValues(QUERY)
+	info := sbuilder.GetField(data, 0)
+	_, values := info.GetDbValues(sbuilder.QUERY)
 	var cols string
 	if len(columns) == 0 {
 		cols = " * "
@@ -337,8 +305,8 @@ func (m *Sorm) GetOne(data interface{}, columns ...string) error {
 		cols = strings.Join(columns, ", ")
 	}
 	sql := fmt.Sprintf("select %s from %s where 1=1 ", cols, info.TableName)
-	condi := buildQuery(info)
-	sql += condi.sql.String()
+	condi := sbuilder.BuildQuery(info)
+	sql += condi.Sql.String()
 	printSQL(sql, values...)
 	err := m.DB.Get(data, sql, values...)
 	if err != nil {
@@ -350,8 +318,8 @@ func (m *Sorm) GetOne(data interface{}, columns ...string) error {
 
 // 查询一条记录
 func (m *Sorm) SelectOneTx(tx *sqlx.Tx, data interface{}, query interface{}, columns ...string) error {
-	info := GetField(query, 0)
-	_, values := info.GetDbValues(QUERY)
+	info := sbuilder.GetField(query, 0)
+	_, values := info.GetDbValues(sbuilder.QUERY)
 	var cols string
 	if len(columns) == 0 {
 		cols = " * "
@@ -359,8 +327,8 @@ func (m *Sorm) SelectOneTx(tx *sqlx.Tx, data interface{}, query interface{}, col
 		cols = strings.Join(columns, ", ")
 	}
 	sql := fmt.Sprintf("select %s from %s where 1=1 ", cols, info.TableName)
-	condi := buildQuery(info)
-	sql += condi.sql.String()
+	condi := sbuilder.BuildQuery(info)
+	sql += condi.Sql.String()
 	printSQL(sql, values...)
 	err := tx.Get(data, sql, values...)
 	if err != nil {

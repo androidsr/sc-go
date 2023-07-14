@@ -1,4 +1,4 @@
-package sorm
+package sbuilder
 
 import (
 	"reflect"
@@ -13,7 +13,23 @@ const (
 	QUERY OrmAction = 2
 )
 
+var (
+	insertFill = make(map[string]func() any, 0)
+	updateFill = make(map[string]func() any, 0)
+)
+
 type OrmAction int
+
+// 自动填充处理
+
+// 增加字段进行自动填充
+func AddInsertFill(column string, call func() any) {
+	insertFill[column] = call
+}
+
+func AddUpdateFill(column string, call func() any) {
+	updateFill[column] = call
+}
 
 type StructInfo struct {
 	TableName  string
@@ -112,7 +128,7 @@ func GetField(obj interface{}, fillType int) *StructInfo {
 
 			value, _ := reflections.GetField(obj, fName)
 			if value == nil || value == "" {
-				var autoFunc FillFunc
+				var autoFunc func() any
 				if fillType == 1 {
 					autoFunc = insertFill[item.TagDB]
 				} else if fillType == 2 {
@@ -154,7 +170,7 @@ type BetweenInfo struct {
 	Right interface{} `json:"end"`
 }
 
-func buildQuery(info *StructInfo) *SelectBuilder {
+func BuildQuery(info *StructInfo) *SelectBuilder {
 	builder := Builder("")
 	for _, item := range info.Fields {
 		keyword := item.TagKeyword
