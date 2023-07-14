@@ -89,7 +89,7 @@ func (m *Sgorm) Exists(obj interface{}) bool {
 // 按条件获取数据条数
 func (m *Sgorm) GetCount(obj interface{}) int64 {
 	var count int64
-	err := m.DB.Where(obj).Count(&count)
+	err := m.DB.Where(obj).Count(&count).Error
 	if err != nil {
 		fmt.Printf("Gorm GetCount -> Error：%v\n", err)
 		return 0
@@ -101,7 +101,7 @@ func (m *Sgorm) GetCount(obj interface{}) int64 {
 func (m *Sgorm) SelectCount(sql string, values ...interface{}) int64 {
 	var count int64
 	sql = fmt.Sprintf("select count(*) from (%s) t", sql)
-	err := m.DB.Raw(sql, values...).Scan(&count)
+	err := m.DB.Raw(sql, values...).Scan(&count).Error
 	if err != nil {
 		fmt.Printf("Gorm GetCount -> Error：%v\n", err)
 		return 0
@@ -145,28 +145,28 @@ func (m *Sgorm) Delete(obj interface{}) *gorm.DB {
 }
 
 // 删除数据
-func (m *Sgorm) DeleteById(obj interface{}, id interface{}) *gorm.DB {
-	return m.DB.Delete(obj, id)
+func (m *Sgorm) DeleteById(obj interface{}, id interface{}) error {
+	return m.DB.Delete(obj, id).Error
 }
 
 // 删除数据
-func (m *Sgorm) DeleteByIds(obj interface{}, id []interface{}) *gorm.DB {
-	return m.DB.Delete(obj, id)
+func (m *Sgorm) DeleteByIds(obj interface{}, id []interface{}) error {
+	return m.DB.Delete(obj, id).Error
 }
 
 // 查询集合
-func (m *Sgorm) SelectList(data interface{}, query interface{}) *gorm.DB {
-	return m.DB.Where(query).Find(data)
+func (m *Sgorm) SelectList(data interface{}, query interface{}) error {
+	return m.DB.Where(query).Find(data).Error
 }
 
 // 查询一条记录
-func (m *Sgorm) SelectOne(data interface{}, query interface{}, columns ...string) *gorm.DB {
-	return m.DB.Where(query).First(data)
+func (m *Sgorm) SelectOne(data interface{}, query interface{}, columns ...string) error {
+	return m.DB.Where(query).First(data).Error
 }
 
 // 查询一条记录
-func (m *Sgorm) GetOne(data interface{}, columns ...string) *gorm.DB {
-	return m.DB.Where(data).First(data)
+func (m *Sgorm) GetOne(data interface{}, columns ...string) error {
+	return m.DB.Where(data).First(data).Error
 }
 
 // 分页查询数据
