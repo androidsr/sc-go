@@ -32,9 +32,7 @@ const (
 )
 
 var (
-	DB         *Sgorm
-	insertFill map[string]func() any
-	updateFill map[string]func() any
+	DB *Sgorm
 )
 
 type Sgorm struct {
@@ -69,19 +67,8 @@ func New(config *syaml.SqlxInfo) *Sgorm {
 	}
 	sqlDB.SetMaxIdleConns(config.MaxIdle)
 	sqlDB.SetMaxOpenConns(config.MaxOpen)
-	insertFill = make(map[string]func() any, 0)
-	updateFill = make(map[string]func() any, 0)
 	pSqlx := &Sgorm{db, config}
 	return pSqlx
-}
-
-// 增加字段进行自动填充
-func AddInsertFill(column string, call func() any) {
-	insertFill[column] = call
-}
-
-func AddUpdateFill(column string, call func() any) {
-	updateFill[column] = call
 }
 
 // 判断数据是否存在
@@ -154,8 +141,8 @@ func (m *Sgorm) DeleteById(obj interface{}, id interface{}) error {
 }
 
 // 删除数据
-func (m *Sgorm) DeleteByIds(obj interface{}, id []interface{}) error {
-	return m.DB.Delete(obj, id).Error
+func (m *Sgorm) DeleteByIds(obj interface{}, ids []interface{}) error {
+	return m.DB.Delete(obj, ids).Error
 }
 
 // 查询集合
@@ -164,12 +151,17 @@ func (m *Sgorm) SelectList(data interface{}, query interface{}) error {
 }
 
 // 查询一条记录
-func (m *Sgorm) SelectOne(data interface{}, query interface{}, columns ...string) error {
+func (m *Sgorm) SelectOne(data interface{}, query interface{}) error {
 	return m.DB.Where(query).First(data).Error
 }
 
 // 查询一条记录
-func (m *Sgorm) GetOne(data interface{}, columns ...string) error {
+func (m *Sgorm) GetOne(data interface{}) error {
+	return m.DB.Where(data).First(data).Error
+}
+
+// 查询一条记录
+func (m *Sgorm) Get(data interface{}) error {
 	return m.DB.Where(data).First(data).Error
 }
 
