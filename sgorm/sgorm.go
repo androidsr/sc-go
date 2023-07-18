@@ -15,23 +15,6 @@ import (
 	"gorm.io/gorm/schema"
 )
 
-const (
-	Eq         = "eq"
-	Ne         = "ne"
-	In         = "in"
-	NotIn      = "notIn"
-	Gt         = "gt"
-	Lt         = "lt"
-	Ge         = "ge"
-	Le         = "le"
-	Between    = "between"
-	NotBetween = "notBetween"
-	Like       = "like"
-	NotLike    = "notLike"
-	LikeLeft   = "likeLeft"
-	LikeRight  = "likeRight"
-)
-
 var (
 	DB *Sgorm
 )

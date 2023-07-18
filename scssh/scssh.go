@@ -196,8 +196,14 @@ func (t *Terminal) ReadString(delim byte, callback ...func(data string)) (string
 
 // 关闭当前终端
 func (t *Terminal) Close() error {
-	t.input.Close()
-	err := t.session.Close()
+	err := t.input.Close()
+	if err != nil {
+		fmt.Println("ssh close error:", err)
+	}
+	err = t.session.Close()
+	if err != nil {
+		fmt.Println("ssh close error:", err)
+	}
 	return err
 }
 
@@ -207,7 +213,20 @@ func (t *Terminal) CloseAll() error {
 		recover()
 	}()
 	_, err := t.cli.Run("kill -9 -" + t.pid)
-	t.input.Close()
-	t.session.Close()
+	if err != nil {
+		fmt.Println("ssh close error:", err)
+	}
+	err = t.input.Close()
+	if err != nil {
+		fmt.Println("ssh close error:", err)
+	}
+	err = t.session.Close()
+	if err != nil {
+		fmt.Println("ssh close error:", err)
+	}
+	err = t.cli.Close()
+	if err != nil {
+		fmt.Println("ssh close error:", err)
+	}
 	return err
 }
