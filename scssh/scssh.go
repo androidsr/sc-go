@@ -169,7 +169,7 @@ func (t *Terminal) Write(shell string) {
 	t.input.Write([]byte(shell + ";echo sc-finish:$?;\n"))
 }
 
-func (t *Terminal) ReadString(delim byte, callback ...func(data string)) (string, error) {
+func (t *Terminal) ReadString(delim byte, callback ...func(ip, data string)) (string, error) {
 	defer func() {
 		recover()
 	}()
@@ -182,7 +182,7 @@ func (t *Terminal) ReadString(delim byte, callback ...func(data string)) (string
 			break
 		}
 		if callback != nil {
-			callback[0](line)
+			callback[0](t.cli.IP, line)
 		}
 		state = strings.TrimSpace(state)
 		buf.WriteString(strings.TrimSpace(line))
@@ -197,11 +197,11 @@ func (t *Terminal) ReadString(delim byte, callback ...func(data string)) (string
 // 关闭当前终端
 func (t *Terminal) Close() error {
 	err := t.input.Close()
-	if err != nil {
+	if err != nil && err != io.EOF {
 		fmt.Println("ssh close error:", err)
 	}
 	err = t.session.Close()
-	if err != nil {
+	if err != nil && err != io.EOF {
 		fmt.Println("ssh close error:", err)
 	}
 	return err
@@ -213,19 +213,19 @@ func (t *Terminal) CloseAll() error {
 		recover()
 	}()
 	_, err := t.cli.Run("kill -9 -" + t.pid)
-	if err != nil {
+	if err != nil && err != io.EOF {
 		fmt.Println("ssh close error:", err)
 	}
 	err = t.input.Close()
-	if err != nil {
+	if err != nil && err != io.EOF {
 		fmt.Println("ssh close error:", err)
 	}
 	err = t.session.Close()
-	if err != nil {
+	if err != nil && err != io.EOF {
 		fmt.Println("ssh close error:", err)
 	}
 	err = t.cli.Close()
-	if err != nil {
+	if err != nil && err != io.EOF {
 		fmt.Println("ssh close error:", err)
 	}
 	return err
