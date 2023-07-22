@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
 	"strings"
@@ -258,50 +257,49 @@ func (t *Terminal) CloseAll() error {
 	return err
 }
 
-func UploadFile(sftpClient *sftp.Client, localFilePath string, remotePath string) {
+func (t *Terminal) UploadFile(localFilePath string, remotePath string) (string, error) {
 	srcFile, err := os.Open(localFilePath)
 	if err != nil {
-		fmt.Println("os.Open error : ", localFilePath)
-		log.Fatal(err)
-
+		return "", err
 	}
 	defer srcFile.Close()
 
 	var remoteFileName = path.Base(localFilePath)
 
-	dstFile, err := sftpClient.Create(path.Join(remotePath, remoteFileName))
+	dstFile, err := t.cli.sftp.Create(path.Join(remotePath, remoteFileName))
 	if err != nil {
-		fmt.Println("sftpClient.Create error : ", path.Join(remotePath, remoteFileName))
-		log.Fatal(err)
+		return "", err
 
 	}
 	defer dstFile.Close()
 
 	ff, err := ioutil.ReadAll(srcFile)
 	if err != nil {
-		fmt.Println("ReadAll error : ", localFilePath)
-		log.Fatal(err)
-
+		return "", err
 	}
 	fmt.Println("上传中...")
 	dstFile.Write(ff)
-	fmt.Printf("文件上传成功：%v\n", localFilePath)
+	return localFilePath + ":上传成功", nil
 }
 
-func UploadDirectory(sftpClient *sftp.Client, localPath string, remotePath string) {
+func (t *Terminal) UploadDirectory(localPath string, remotePath string) error {
 	localFiles, err := ioutil.ReadDir(localPath)
 	if err != nil {
-		log.Fatal("read dir list fail ", err)
+		return err
 	}
+	var msg string
 	for _, backupDir := range localFiles {
 		localFilePath := path.Join(localPath, backupDir.Name())
 		remoteFilePath := path.Join(remotePath, backupDir.Name())
 		if backupDir.IsDir() {
-			sftpClient.Mkdir(remoteFilePath)
-			UploadDirectory(sftpClient, localFilePath, remoteFilePath)
+			t.cli.sftp.Mkdir(remoteFilePath)
+			err = t.UploadDirectory(localFilePath, remoteFilePath)
 		} else {
-			UploadFile(sftpClient, path.Join(localPath, backupDir.Name()), remotePath)
+			msg, err = t.UploadFile(path.Join(localPath, backupDir.Name()), remotePath)
+			if err == nil {
+				fmt.Println(msg)
+			}
 		}
 	}
-	fmt.Println("..........结束..........")
+	return err
 }
