@@ -80,10 +80,7 @@ func (m *Command) Command(shell string) error {
 		return err
 	}
 	defer stdout.Close()
-
 	stderr, _ := m.cmd.StderrPipe()
-	defer stderr.Close()
-
 	err = m.cmd.Start()
 	if err != nil {
 		return err
@@ -116,6 +113,7 @@ func (m *Command) Command(shell string) error {
 		return nil
 	} else {
 		bs, _ := io.ReadAll(stderr)
+		stderr.Close()
 		return errors.New(string(bs))
 	}
 }
