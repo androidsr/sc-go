@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"os/exec"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -26,6 +27,7 @@ func New(callback func(shell, output string) bool, stopBack func(output string))
 	c.isRun = true
 	c.WaitRun(stopBack)
 	c.callback = callback
+	c.sysType = runtime.GOOS
 	return c
 }
 
