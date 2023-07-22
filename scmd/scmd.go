@@ -54,7 +54,7 @@ func (m *Command) Command(shell string) error {
 	if m.sysType == "linux" {
 		newSh := shell
 		if m.dir != "" {
-			newSh = m.dir + " && " + shell
+			newSh = "cd " + m.dir + " && " + shell
 		}
 		m.cmd = exec.Command("bash", "-c", newSh)
 	} else if m.sysType == "windows" {
@@ -68,7 +68,7 @@ func (m *Command) Command(shell string) error {
 			}
 		}
 		if m.dir != "" {
-			cmdName = m.dir + " && " + cmdName
+			cmdName = "cd " + m.dir + " && " + cmdName
 		}
 		m.cmd = exec.Command(cmdName, args...)
 	}
