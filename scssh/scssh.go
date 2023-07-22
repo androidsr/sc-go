@@ -233,6 +233,14 @@ func (t *Terminal) Close() error {
 	return err
 }
 
+func (t *Terminal) CloseCli() error {
+	err := t.cli.Close()
+	if err != nil && err != io.EOF {
+		fmt.Println("ssh close error:", err)
+	}
+	return err
+}
+
 // 关闭当前终端以及子进程
 func (t *Terminal) CloseAll() error {
 	defer func() {
