@@ -15,7 +15,6 @@ type Command struct {
 	sysType  string
 	callback func(shell, output string) bool
 	cmd      *exec.Cmd
-	stderr   *bytes.Buffer
 	dir      string
 	isRun    bool
 	waitRun  bool
@@ -73,7 +72,8 @@ func (m *Command) Command(shell string) error {
 		}
 		m.cmd = exec.Command(cmdName, args...)
 	}
-	m.cmd.Stderr = m.stderr
+	stderr := bytes.Buffer{}
+	m.cmd.Stderr = &stderr
 	stdout, err := m.cmd.StdoutPipe()
 	if err != nil {
 		return err
@@ -105,9 +105,9 @@ func (m *Command) Command(shell string) error {
 	if err != nil {
 		return err
 	}
-	if m.stderr.String() == "" {
+	if stderr.String() == "" {
 		return nil
 	} else {
-		return errors.New(m.stderr.String())
+		return errors.New(stderr.String())
 	}
 }
