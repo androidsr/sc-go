@@ -7,9 +7,13 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
+	"os"
+	"path"
 	"strings"
 	"time"
 
+	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -19,8 +23,9 @@ type Cli struct {
 	Password   string      //密码
 	Port       int         //端口号
 	client     *ssh.Client //ssh客户端
-	LastResult string      //最近一次Run的结果
-	authMode   string      //认证方式
+	sftp       *sftp.Client
+	LastResult string //最近一次Run的结果
+	authMode   string //认证方式
 	publicKey  ssh.AuthMethod
 }
 
@@ -47,7 +52,7 @@ func New(authMode, ip, username, password, publicKey string, port ...int) *Cli {
 }
 
 func (c *Cli) Close() error {
-	fmt.Println(c, c.client)
+	c.sftp.Close()
 	return c.client.Close()
 }
 
@@ -94,6 +99,11 @@ func (c *Cli) connect() error {
 		return err
 	}
 	c.client = sshClient
+	sftpClient, err := sftp.NewClient(sshClient)
+	if err != nil {
+		return err
+	}
+	c.sftp = sftpClient
 	return nil
 }
 
@@ -151,6 +161,19 @@ func (c *Cli) NewTerminal() (*Terminal, error) {
 		return nil, err
 	}
 	terminal.pid = strings.TrimSpace(data)
+	location, _ := time.LoadLocation("Asia/Shanghai")
+	terminal.Now = time.Now().In(location)
+	terminal.IsRun = false
+	go func() {
+		ticker := time.NewTicker(time.Minute * 1)
+		for terminal.IsRun {
+			<-ticker.C
+			duration := time.Now().In(location).Sub(terminal.Now)
+			if duration.Minutes() > 3 {
+				terminal.CloseAll()
+			}
+		}
+	}()
 	return terminal, nil
 }
 
@@ -160,16 +183,20 @@ type Terminal struct {
 	session *ssh.Session
 	input   io.WriteCloser
 	output  *bufio.Reader
+	Now     time.Time
+	IsRun   bool
 }
 
 func (t *Terminal) Write(shell string) {
 	defer func() {
 		recover()
 	}()
+	t.Now = time.Now()
 	t.input.Write([]byte(shell + ";echo sc-finish:$?;\n"))
 }
 
 func (t *Terminal) ReadString(delim byte, callback ...func(ip, data string)) (string, error) {
+	t.Now = time.Now()
 	defer func() {
 		recover()
 	}()
@@ -229,4 +256,52 @@ func (t *Terminal) CloseAll() error {
 		fmt.Println("ssh close error:", err)
 	}
 	return err
+}
+
+func UploadFile(sftpClient *sftp.Client, localFilePath string, remotePath string) {
+	srcFile, err := os.Open(localFilePath)
+	if err != nil {
+		fmt.Println("os.Open error : ", localFilePath)
+		log.Fatal(err)
+
+	}
+	defer srcFile.Close()
+
+	var remoteFileName = path.Base(localFilePath)
+
+	dstFile, err := sftpClient.Create(path.Join(remotePath, remoteFileName))
+	if err != nil {
+		fmt.Println("sftpClient.Create error : ", path.Join(remotePath, remoteFileName))
+		log.Fatal(err)
+
+	}
+	defer dstFile.Close()
+
+	ff, err := ioutil.ReadAll(srcFile)
+	if err != nil {
+		fmt.Println("ReadAll error : ", localFilePath)
+		log.Fatal(err)
+
+	}
+	fmt.Println("上传中...")
+	dstFile.Write(ff)
+	fmt.Printf("文件上传成功：%v\n", localFilePath)
+}
+
+func UploadDirectory(sftpClient *sftp.Client, localPath string, remotePath string) {
+	localFiles, err := ioutil.ReadDir(localPath)
+	if err != nil {
+		log.Fatal("read dir list fail ", err)
+	}
+	for _, backupDir := range localFiles {
+		localFilePath := path.Join(localPath, backupDir.Name())
+		remoteFilePath := path.Join(remotePath, backupDir.Name())
+		if backupDir.IsDir() {
+			sftpClient.Mkdir(remoteFilePath)
+			UploadDirectory(sftpClient, localFilePath, remoteFilePath)
+		} else {
+			UploadFile(sftpClient, path.Join(localPath, backupDir.Name()), remotePath)
+		}
+	}
+	fmt.Println("..........结束..........")
 }
