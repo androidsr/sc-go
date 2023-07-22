@@ -99,12 +99,9 @@ func (m *Command) Command(shell string) error {
 			}
 		}
 	}()
-	err = m.cmd.Wait()
+	m.cmd.Wait()
 	m.waitRun = false
 	m.isRun = false
-	if err != nil {
-		return err
-	}
 	if stderr.String() == "" {
 		return nil
 	} else {
