@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -99,10 +100,16 @@ func (m *Command) Command(shell string) error {
 			}
 		}
 	}()
-	m.cmd.Wait()
+	res := 0
+	if err := m.cmd.Wait(); err != nil {
+		if ex, ok := err.(*exec.ExitError); ok {
+			res = ex.Sys().(syscall.WaitStatus).ExitStatus() //获取命令执行返回状态，相当于shell: echo $?
+			m.callback(shell, stderr.String())
+		}
+	}
 	m.waitRun = false
 	m.isRun = false
-	if stderr.String() == "" {
+	if res == 0 {
 		return nil
 	} else {
 		return errors.New(stderr.String())
