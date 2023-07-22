@@ -279,7 +279,7 @@ func (t *Terminal) UploadFile(localFilePath string, remotePath string) (string, 
 	}
 	fmt.Println("上传中...")
 	dstFile.Write(ff)
-	return localFilePath + ":上传成功", nil
+	return localFilePath + ">成功", nil
 }
 
 func (t *Terminal) UploadDirectory(localPath string, remotePath string) error {
