@@ -73,13 +73,17 @@ func (m *Command) Command(shell string) error {
 		}
 		m.cmd = exec.Command(cmdName, args...)
 	}
-	//stderr := bytes.Buffer{}
-	//m.cmd.Stderr = &stderr
+
 	stdout, err := m.cmd.StdoutPipe()
+
 	if err != nil {
 		return err
 	}
 	defer stdout.Close()
+
+	stderr, _ := m.cmd.StderrPipe()
+	defer stderr.Close()
+
 	err = m.cmd.Start()
 	if err != nil {
 		return err
@@ -104,7 +108,6 @@ func (m *Command) Command(shell string) error {
 	if err := m.cmd.Wait(); err != nil {
 		if ex, ok := err.(*exec.ExitError); ok {
 			res = ex.Sys().(syscall.WaitStatus).ExitStatus() //获取命令执行返回状态，相当于shell: echo $?
-			m.callback(shell, err.Error())
 		}
 	}
 	m.waitRun = false
@@ -112,6 +115,7 @@ func (m *Command) Command(shell string) error {
 	if res == 0 {
 		return nil
 	} else {
-		return errors.New("执行失败")
+		bs, _ := io.ReadAll(stderr)
+		return errors.New(string(bs))
 	}
 }
