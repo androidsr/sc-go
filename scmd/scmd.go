@@ -48,6 +48,7 @@ func (m *Command) Command(shell string) error {
 	defer func() {
 		recover()
 	}()
+	m.callback(shell, shell)
 	if strings.HasPrefix(shell, "cd ") {
 		m.dir = strings.TrimSpace(shell[3:])
 		return nil
