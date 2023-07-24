@@ -3,13 +3,33 @@ package scmd
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"io"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 )
+
+var (
+	mutex sync.Mutex
+	pwd   string
+)
+
+func init() {
+	executablePath, err := os.Executable()
+	if err != nil {
+		fmt.Println("无法获取可执行文件路径：", err)
+		return
+	}
+	executableDir := filepath.Dir(executablePath)
+	os.Chdir(executableDir)
+	pwd = executableDir
+}
 
 type Command struct {
 	sysType  string
@@ -46,17 +66,17 @@ func (m *Command) WaitRun(callback func(output string)) {
 func (m *Command) Command(shell string) error {
 	defer func() {
 		recover()
+		os.Chdir(pwd)
 	}()
 	m.callback(shell, shell)
 	if strings.HasPrefix(shell, "cd ") {
 		m.dir = strings.TrimSpace(shell[3:])
 		return nil
 	}
+	mutex.Lock()
+	os.Chdir(m.dir)
 	if m.sysType == "linux" {
 		newSh := shell
-		if m.dir != "" {
-			newSh = "cd " + m.dir + " && " + shell
-		}
 		m.cmd = exec.Command("bash", "-c", newSh)
 	} else if m.sysType == "windows" {
 		var cmdName string
@@ -68,21 +88,20 @@ func (m *Command) Command(shell string) error {
 				args = append(args, strings.TrimSpace(v))
 			}
 		}
-		if m.dir != "" {
-			cmdName = "cd " + m.dir + " && " + cmdName
-		}
 		m.cmd = exec.Command(cmdName, args...)
 	}
-
 	stdout, err := m.cmd.StdoutPipe()
-
 	if err != nil {
+		os.Chdir(pwd)
+		mutex.Unlock()
 		return err
 	}
 	defer stdout.Close()
 	stderr, _ := m.cmd.StderrPipe()
 	err = m.cmd.Start()
 	if err != nil {
+		os.Chdir(pwd)
+		mutex.Unlock()
 		return err
 	}
 	reader := bufio.NewReader(stdout)
@@ -101,6 +120,8 @@ func (m *Command) Command(shell string) error {
 			}
 		}
 	}()
+	os.Chdir(pwd)
+	mutex.Unlock()
 	res := 0
 	if err := m.cmd.Wait(); err != nil {
 		if ex, ok := err.(*exec.ExitError); ok {
