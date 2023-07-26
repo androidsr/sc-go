@@ -3,6 +3,7 @@ package scmd
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -68,6 +69,7 @@ func (m *Command) Command(shell string) error {
 	}
 	mutex.Lock()
 	os.Chdir(m.dir)
+	fmt.Println(sc.GetWorkDir(), shell)
 	if m.sysType == "linux" {
 		newSh := shell
 		m.cmd = exec.Command("bash", "-c", newSh)
