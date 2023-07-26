@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"time"
@@ -242,4 +244,19 @@ func AssertSliceType(value interface{}) []interface{} {
 		return SliceToInterface(inter)
 	}
 	return nil
+}
+
+func GetExecuteDir() string {
+	executablePath, err := os.Executable()
+	if err != nil {
+		fmt.Println("无法获取可执行文件路径：", err)
+		return ""
+	}
+	executableDir := filepath.Dir(executablePath)
+	return executableDir
+}
+
+func GetWorkDir() string {
+	str, _ := os.Getwd()
+	return str
 }

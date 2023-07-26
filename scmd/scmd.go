@@ -3,16 +3,16 @@ package scmd
 import (
 	"bufio"
 	"errors"
-	"fmt"
 	"io"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/androidsr/sc-go/sc"
 )
 
 var (
@@ -21,14 +21,7 @@ var (
 )
 
 func init() {
-	executablePath, err := os.Executable()
-	if err != nil {
-		fmt.Println("无法获取可执行文件路径：", err)
-		return
-	}
-	executableDir := filepath.Dir(executablePath)
-	os.Chdir(executableDir)
-	pwd = executableDir
+	pwd = sc.GetExecuteDir()
 }
 
 type Command struct {
