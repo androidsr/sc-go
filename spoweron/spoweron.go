@@ -3,9 +3,9 @@ package spoweron
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"sync"
 
+	"github.com/androidsr/sc-go/sc"
 	"github.com/kardianos/service"
 )
 
@@ -40,13 +40,7 @@ func (p *program) Stop(s service.Service) error {
 }
 
 func Run(name string, callback Poweron) {
-	executablePath, err := os.Executable()
-	if err != nil {
-		fmt.Println("无法获取可执行文件路径：", err)
-		return
-	}
-	executableDir := filepath.Dir(executablePath)
-	err = os.Chdir(executableDir)
+	err := os.Chdir(sc.GetExecuteDir())
 	if err != nil {
 		fmt.Println("切换当前工作目录错误：", err)
 		return
