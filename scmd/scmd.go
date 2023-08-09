@@ -33,11 +33,10 @@ type Command struct {
 	waitRun  bool
 }
 
-func New(callback func(shell, output string) bool, stopBack func(output string)) *Command {
+func New(callback func(shell, output string) bool) *Command {
 	c := &Command{}
 	c.waitRun = true
 	c.isRun = true
-	c.WaitRun(stopBack)
 	c.callback = callback
 	c.sysType = runtime.GOOS
 	return c
