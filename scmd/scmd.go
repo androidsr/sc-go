@@ -3,6 +3,7 @@ package scmd
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -116,6 +117,7 @@ func (m *Command) Command(shell string) error {
 	mutex.Unlock()
 	res := 0
 	if err := m.cmd.Wait(); err != nil {
+		fmt.Println(err)
 		if ex, ok := err.(*exec.ExitError); ok {
 			res = ex.Sys().(syscall.WaitStatus).ExitStatus() //获取命令执行返回状态，相当于shell: echo $?
 		}
