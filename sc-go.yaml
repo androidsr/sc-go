@@ -103,3 +103,9 @@ sc:
     server:
       - name: /api
         addr: http://localhost:8080
+
+  minio:
+    endpoint: 
+    accessKeyID: 
+    secretAccessKey: 
+    useSSL: false
