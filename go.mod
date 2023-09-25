@@ -11,6 +11,7 @@ require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/jinzhu/copier v0.3.5
 	github.com/jmoiron/sqlx v1.3.5
+	github.com/jordan-wright/email v4.0.1-0.20210109023952-943e75fe5223+incompatible
 	github.com/kardianos/service v1.2.2
 	github.com/minio/minio-go/v7 v7.0.63
 	github.com/nacos-group/nacos-sdk-go/v2 v2.2.2
