@@ -2,6 +2,7 @@ package semail
 
 import (
 	"fmt"
+	"io"
 	"net/smtp"
 
 	"github.com/androidsr/sc-go/syaml"
@@ -25,7 +26,7 @@ func SendEmail(to, title, body string) error {
 	auth := smtp.PlainAuth("", username, password, host)
 	message := "Subject: " + title + "\n" + body
 	err := smtp.SendMail(host+":"+fmt.Sprint(port), auth, username, []string{to}, []byte(message))
-	if err != nil {
+	if err != nil && err != io.EOF {
 		return err
 	}
 	return nil
