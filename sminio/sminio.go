@@ -14,10 +14,10 @@ import (
 )
 
 var (
-	client     *minio.Client
+	client *minio.Client
 )
 
-func New(cfg *syaml.MinioInfo) {
+func New(cfg *syaml.MinioInfo) (*minio.Client, error) {
 	var err error
 	client, err = minio.New(cfg.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(cfg.AccessKeyID, cfg.SecretAccessKey, ""),
@@ -25,11 +25,16 @@ func New(cfg *syaml.MinioInfo) {
 	})
 	if err != nil {
 		log.Fatalln("创建 MinIO 客户端失败", err)
-		return
+		return nil, err
 	}
+	return client, err
 }
 
-func CreateBucket(bucketName string) bool {
+func CreateBucketDefault(bucketName string) bool {
+	return CreateBucket(client, bucketName)
+}
+
+func CreateBucket(client *minio.Client, bucketName string) bool {
 	err := client.MakeBucket(context.Background(), bucketName, minio.MakeBucketOptions{})
 	if err != nil {
 		// 检查存储桶是否已经存在。
@@ -42,6 +47,10 @@ func CreateBucket(bucketName string) bool {
 		}
 	}
 	return true
+}
+
+func UploadFileDefault(bucketName, objectName, filePath, contentType string) error {
+	return UploadFile(client, bucketName, objectName, filePath, contentType)
 }
 
 // UploadFile 上传文件到指定的 Minio 存储桶中。
@@ -68,8 +77,12 @@ func UploadFile(client *minio.Client, bucketName, objectName, filePath, contentT
 	return nil
 }
 
+func DownloadFileDefault(objectName, bucketName, filePath string) error {
+	return DownloadFile(client, objectName, bucketName, filePath)
+}
+
 // DownloadFile 从Minio存储桶中下载文件到本地。
-func DownloadFile(bucketName, objectName, filePath string) error {
+func DownloadFile(client *minio.Client, bucketName, objectName, filePath string) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -93,8 +106,12 @@ func DownloadFile(bucketName, objectName, filePath string) error {
 	return nil
 }
 
+func ListObjectsDefault(bucketName string) ([]string, error) {
+	return ListObjects(client, bucketName)
+}
+
 // ListObjects 列出指定存储桶中的对象。
-func ListObjects(bucketName string) ([]string, error) {
+func ListObjects(client *minio.Client, bucketName string) ([]string, error) {
 	// 创建一个可取消的上下文
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -113,8 +130,12 @@ func ListObjects(bucketName string) ([]string, error) {
 	return objectNames, nil
 }
 
+func RemoveObjectDefault(bucketName, objectName string) error {
+	return RemoveObject(client, bucketName, objectName)
+}
+
 // RemoveObject 从Minio存储桶中删除指定的对象。
-func RemoveObject(bucketName, objectName string) error {
+func RemoveObject(client *minio.Client, bucketName, objectName string) error {
 	// 创建一个可取消的上下文
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
