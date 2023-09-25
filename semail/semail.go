@@ -1,11 +1,8 @@
 package semail
 
 import (
-	"io"
-	"net/smtp"
-	"strings"
-
 	"github.com/androidsr/sc-go/syaml"
+	"gopkg.in/gomail.v2"
 )
 
 const (
@@ -15,7 +12,7 @@ const (
 
 var (
 	host     string
-	port     string
+	port     int
 	username string
 	password string
 )
@@ -27,19 +24,14 @@ func New(config *syaml.EmailInfo) {
 	password = config.Password
 }
 
-func SendEmail(mailtype, to, subject, body string) error {
-	auth := smtp.PlainAuth("", username, password, host)
-
-	var contentType string
-	if mailtype == HTML {
-		contentType = "Content-Type: text/" + mailtype + "; charset=UTF-8"
-	} else {
-		contentType = "Content-Type: text/plain" + "; charset=UTF-8"
-	}
-	msg := []byte("To: " + to + "\r\nFrom: " + username + "<" + username + ">" + "\r\nSubject: " + subject + "\r\n" + contentType + "\r\n\r\n" + body)
-	send_to := strings.Split(to, ";")
-	err := smtp.SendMail(host+":"+port, auth, username, send_to, msg)
-	if err != nil && err != io.EOF {
+func SendEmail(from, to, subject, body string) error {
+	msg := gomail.NewMessage()
+	msg.SetHeader("From", from)
+	msg.SetHeader("To", to)
+	msg.SetHeader("Subject", subject)
+	msg.SetBody("text/html", body)
+	n := gomail.NewDialer(host, port, username, password)
+	if err := n.DialAndSend(msg); err != nil {
 		return err
 	}
 	return nil

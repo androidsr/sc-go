@@ -11,7 +11,6 @@ require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/jinzhu/copier v0.3.5
 	github.com/jmoiron/sqlx v1.3.5
-	github.com/jordan-wright/email v4.0.1-0.20210109023952-943e75fe5223+incompatible
 	github.com/kardianos/service v1.2.2
 	github.com/minio/minio-go/v7 v7.0.63
 	github.com/nacos-group/nacos-sdk-go/v2 v2.2.2
@@ -22,6 +21,7 @@ require (
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/timandy/routine v1.1.1
 	golang.org/x/crypto v0.12.0
+	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/mysql v1.5.1
 	gorm.io/driver/postgres v1.5.2
@@ -102,6 +102,7 @@ require (
 	google.golang.org/genproto v0.0.0-20200825200019-8632dd797987 // indirect
 	google.golang.org/grpc v1.48.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
+	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 )

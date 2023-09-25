@@ -147,7 +147,7 @@ type MinioInfo struct {
 
 type EmailInfo struct {
 	Host     string `yaml:"host"`
-	Port     string `yaml:"port"`
+	Port     int `yaml:"port"`
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
 }
