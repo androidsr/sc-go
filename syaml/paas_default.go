@@ -15,6 +15,7 @@ type ScInfo struct {
 	Redis       *RedisInfo     `yaml:"redis"`
 	Kafka       *KafkaInfo     `yaml:"kafka"`
 	Jwt         *WebTokenInfo  `yaml:"jwt"`
+	Minio       *MinioInfo     `yaml:"minio"`
 }
 
 type GinInfo struct {
@@ -133,4 +134,11 @@ type WebTokenInfo struct {
 	SecretKey string   `yaml:"secretKey"`
 	Expire    int      `yaml:"expire"`
 	WhiteList []string `yaml:"whiteList"`
+}
+
+type MinioInfo struct {
+	Endpoint        string `yaml:"endpoint"`
+	AccessKeyID     string `yaml:"accessKeyID"`
+	SecretAccessKey string `yaml:"secretAccessKey"`
+	UseSSL          bool   `yaml:"useSSL"`
 }
