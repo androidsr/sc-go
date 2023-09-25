@@ -104,9 +104,17 @@ sc:
       - name: /api
         addr: http://localhost:8080
 
+########minio文件上传##########
   minio:
     bucketName: 
     endpoint: 
     accessKeyID: 
     secretAccessKey: 
     useSSL: false
+
+#########发送邮件############
+  email:
+    host: smtp.163.com
+    port: 465
+    username: srandroid@163.com
+    password: RCBCSDOSWZJTANTI

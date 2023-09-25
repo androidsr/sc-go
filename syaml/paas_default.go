@@ -16,6 +16,7 @@ type ScInfo struct {
 	Kafka       *KafkaInfo     `yaml:"kafka"`
 	Jwt         *WebTokenInfo  `yaml:"jwt"`
 	Minio       *MinioInfo     `yaml:"minio"`
+	Email       *EmailInfo     `yaml:"email"`
 }
 
 type GinInfo struct {
@@ -142,4 +143,11 @@ type MinioInfo struct {
 	AccessKeyID     string `yaml:"accessKeyID"`
 	SecretAccessKey string `yaml:"secretAccessKey"`
 	UseSSL          bool   `yaml:"useSSL"`
+}
+
+type EmailInfo struct {
+	Host     string `yaml:"host"`
+	Port     string `yaml:"port"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
 }
