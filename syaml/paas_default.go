@@ -137,6 +137,7 @@ type WebTokenInfo struct {
 }
 
 type MinioInfo struct {
+	BucketName      string `yaml:"bucketName"`
 	Endpoint        string `yaml:"endpoint"`
 	AccessKeyID     string `yaml:"accessKeyID"`
 	SecretAccessKey string `yaml:"secretAccessKey"`
