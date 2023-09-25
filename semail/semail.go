@@ -14,7 +14,7 @@ var (
 	password string
 )
 
-func New(config syaml.EmailInfo) {
+func New(config *syaml.EmailInfo) {
 	host = config.Host
 	port = config.Port
 	username = config.Username
