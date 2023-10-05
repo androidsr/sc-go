@@ -16,6 +16,9 @@ type MonitorFile struct {
 }
 
 func New(filePath string) *MonitorFile {
+	defer func() {
+		recover()
+	}()
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Printf("创建监视器时出错：%v\n", err)
@@ -37,6 +40,9 @@ func (m *MonitorFile) Close() {
 }
 
 func (m *MonitorFile) Start(contentHandler func(string)) error {
+	defer func() {
+		recover()
+	}()
 	var err error
 	m.file, err = os.Open(m.FilePath)
 	if err != nil {
@@ -58,6 +64,9 @@ func (m *MonitorFile) Start(contentHandler func(string)) error {
 }
 
 func (m *MonitorFile) readNewContent(contentHandler func(string)) {
+	defer func() {
+		recover()
+	}()
 	m.file.Seek(m.readSize, 0)
 	buf := bufio.NewReader(m.file)
 	for {
