@@ -56,6 +56,15 @@ func (m *Command) WaitRun(callback func(output string)) {
 	}()
 }
 
+func IsDir(directoryPath string) bool {
+	_, err := os.Stat(directoryPath)
+	if os.IsNotExist(err) {
+		return false
+	} else {
+		return true
+	}
+}
+
 func (m *Command) Command(shell string) error {
 	defer func() {
 		recover()
@@ -64,6 +73,9 @@ func (m *Command) Command(shell string) error {
 	m.callback(shell, shell)
 	if strings.HasPrefix(shell, "cd ") {
 		m.dir = strings.TrimSpace(shell[3:])
+		if !IsDir(m.dir) {
+			return errors.New("目录不存在")
+		}
 		return nil
 	}
 	mutex.Lock()
