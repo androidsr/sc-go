@@ -64,18 +64,13 @@ func (m *MonitorFile) Start(contentHandler func(string)) error {
 					newContent, err := m.readNewContent(m.fileOffset)
 					if err != nil {
 						log.Printf("读取新增内容时出错：%v", err)
+						continue
 					}
 					contentHandler(newContent)
 					m.fileOffset = fi.Size()
 					m.fileSize = fi.Size()
 				}
 			}
-		case err, ok := <-m.watcher.Errors:
-			if !ok {
-				log.Printf("监听事件出错了；%v\n", err)
-				return nil
-			}
-		}
 	}
 }
 
