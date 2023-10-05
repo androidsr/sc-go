@@ -2,6 +2,7 @@ package sctail
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"os"
 
@@ -41,7 +42,10 @@ func (m *MonitorFile) Start(contentHandler func(string)) error {
 		log.Printf("打开文件时出错：%v\n", err)
 		return err
 	}
-	defer m.file.Close()
+	defer func() {
+		m.file.Close()
+		fmt.Println("关闭文件")
+	}()
 	for {
 		fi, _ := m.file.Stat()
 		m.readSize = fi.Size()
@@ -49,6 +53,7 @@ func (m *MonitorFile) Start(contentHandler func(string)) error {
 		if !ok {
 			return nil
 		}
+		fmt.Println(event.Op.String())
 		if event.Op.String() == "WRITE" {
 			m.readNewContent(contentHandler)
 		}
