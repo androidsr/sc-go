@@ -1,8 +1,7 @@
 package sctail
 
 import (
-	"fmt"
-	"io"
+	"bufio"
 	"log"
 	"os"
 
@@ -10,10 +9,10 @@ import (
 )
 
 type MonitorFile struct {
-	watcher    *fsnotify.Watcher
-	file       *os.File
-	FilePath   string
-	fileOffset int64
+	watcher  *fsnotify.Watcher
+	file     *os.File
+	FilePath string
+	readSize int64
 }
 
 func New(filePath string) *MonitorFile {
@@ -42,44 +41,29 @@ func (m *MonitorFile) Start(contentHandler func(string)) error {
 		log.Printf("打开文件时出错：%v\n", err)
 		return err
 	}
-
 	defer m.file.Close()
-	fi, _ := m.file.Stat()
-	if err != nil {
-		log.Printf("获取文件信息时出错：%v\n", err)
-		return err
-	}
-	m.fileOffset = fi.Size()
 	for {
-		select {
-		case event, ok := <-m.watcher.Events:
-			if !ok {
-				return nil
-			}
-			fi, _ = m.file.Stat()
-			fmt.Println(event.Op.String())
-			if event.Op.String() == "WRITE" {
-				fmt.Println(fi.Size(), m.fileOffset)
-				newContent, err := m.readNewContent(m.fileOffset)
-				if err != nil {
-					log.Printf("读取新增内容时出错：%v", err)
-					continue
-				}
-				contentHandler(newContent)
-				m.fileOffset = fi.Size()
-			}
+		fi, _ := m.file.Stat()
+		m.readSize = fi.Size()
+		event, ok := <-m.watcher.Events
+		if !ok {
+			return nil
+		}
+		if event.Op.String() == "WRITE" {
+			m.readNewContent(contentHandler)
 		}
 	}
 }
 
-func (m *MonitorFile) readNewContent(offset int64) (string, error) {
-	_, err := m.file.Seek(offset, 0)
-	if err != nil {
-		return "", err
+func (m *MonitorFile) readNewContent(contentHandler func(string)) {
+	m.file.Seek(m.readSize, 0)
+	buf := bufio.NewReader(m.file)
+	for {
+		line, err := buf.ReadString('\n')
+		if err != nil {
+			break
+		}
+		contentHandler(line)
+		m.readSize += int64(len(line))
 	}
-	content, err := io.ReadAll(m.file)
-	if err != nil {
-		return "", err
-	}
-	return string(content), nil
 }
