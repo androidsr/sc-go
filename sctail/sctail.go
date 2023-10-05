@@ -11,7 +11,7 @@ import (
 type MonitorFile struct {
 	watcher    *fsnotify.Watcher
 	file       *os.File
-	filePath   string
+	FilePath   string
 	fileSize   int64
 	fileOffset int64
 }
@@ -28,7 +28,7 @@ func New(filePath string) *MonitorFile {
 		return nil
 	}
 	monitor := new(MonitorFile)
-	monitor.filePath = filePath
+	monitor.FilePath = filePath
 	return monitor
 }
 func (m *MonitorFile) Close() {
@@ -36,7 +36,7 @@ func (m *MonitorFile) Close() {
 }
 func (m *MonitorFile) Start(contentHandler func(string)) error {
 	var err error
-	m.file, err = os.Open(m.filePath)
+	m.file, err = os.Open(m.FilePath)
 	if err != nil {
 		log.Printf("打开文件时出错：%v\n", err)
 		return err
