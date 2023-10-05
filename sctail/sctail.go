@@ -58,7 +58,7 @@ func (m *MonitorFile) Start(contentHandler func(string)) error {
 			if !ok {
 				return nil
 			}
-
+			fmt.Println(event.Op.String(), event.Name)
 			if event.Op == fsnotify.Write {
 				if fi.Size() > m.fileSize {
 					fmt.Println(event, ok)
