@@ -59,7 +59,7 @@ func (m *MonitorFile) Start(contentHandler func(string)) error {
 				return nil
 			}
 
-			if event.Op&fsnotify.Write == fsnotify.Write {
+			if event.Op == fsnotify.Write {
 				if fi.Size() > m.fileSize {
 					fmt.Println(event, ok)
 					newContent, err := m.readNewContent(m.fileOffset)
