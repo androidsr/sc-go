@@ -1,6 +1,7 @@
 package sctail
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -55,9 +56,9 @@ func (m *MonitorFile) Start(contentHandler func(string)) error {
 		select {
 		case event, ok := <-m.watcher.Events:
 			if !ok {
-				log.Printf("监听事件出错了\n")
 				return nil
 			}
+			fmt.Println(event, ok)
 			if event.Op&fsnotify.Write == fsnotify.Write {
 				if fi.Size() > m.fileSize {
 					newContent, err := m.readNewContent(m.fileOffset)
