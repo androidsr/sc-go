@@ -44,7 +44,7 @@ func (m *MonitorFile) Start(contentHandler func(string)) error {
 	}
 
 	defer m.file.Close()
-	fi, err := m.file.Stat()
+	fi, _ := m.file.Stat()
 	if err != nil {
 		log.Printf("获取文件信息时出错：%v\n", err)
 		return err
@@ -56,6 +56,7 @@ func (m *MonitorFile) Start(contentHandler func(string)) error {
 			if !ok {
 				return nil
 			}
+			fi, _ = m.file.Stat()
 			fmt.Println(event.Op.String())
 			if event.Op.String() == "WRITE" {
 				fmt.Println(fi.Size(), m.fileOffset)
