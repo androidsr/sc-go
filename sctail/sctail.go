@@ -58,7 +58,7 @@ func (m *MonitorFile) Start(contentHandler func(string)) error {
 			}
 			fmt.Println(event.Op.String())
 			if event.Op.String() == "WRITE" {
-				fmt.Println(fi.Size(), m.fileSize)
+				fmt.Println(fi.Size())
 				newContent, err := m.readNewContent(m.fileOffset)
 				if err != nil {
 					log.Printf("读取新增内容时出错：%v", err)
@@ -66,7 +66,6 @@ func (m *MonitorFile) Start(contentHandler func(string)) error {
 				}
 				contentHandler(newContent)
 				m.fileOffset = fi.Size()
-				m.fileSize = fi.Size()
 			}
 		}
 	}
