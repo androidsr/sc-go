@@ -13,7 +13,6 @@ type MonitorFile struct {
 	watcher    *fsnotify.Watcher
 	file       *os.File
 	FilePath   string
-	fileSize   int64
 	fileOffset int64
 }
 
@@ -50,8 +49,7 @@ func (m *MonitorFile) Start(contentHandler func(string)) error {
 		log.Printf("获取文件信息时出错：%v\n", err)
 		return err
 	}
-	m.fileSize = fi.Size()
-	m.fileOffset = int64(0)
+	m.fileOffset = fi.Size()
 	for {
 		select {
 		case event, ok := <-m.watcher.Events:
@@ -61,17 +59,14 @@ func (m *MonitorFile) Start(contentHandler func(string)) error {
 			fmt.Println(event.Op.String())
 			if event.Op.String() == "WRITE" {
 				fmt.Println(fi.Size(), m.fileSize)
-				if fi.Size() > m.fileSize {
-					fmt.Println(event, ok)
-					newContent, err := m.readNewContent(m.fileOffset)
-					if err != nil {
-						log.Printf("读取新增内容时出错：%v", err)
-						continue
-					}
-					contentHandler(newContent)
-					m.fileOffset = fi.Size()
-					m.fileSize = fi.Size()
+				newContent, err := m.readNewContent(m.fileOffset)
+				if err != nil {
+					log.Printf("读取新增内容时出错：%v", err)
+					continue
 				}
+				contentHandler(newContent)
+				m.fileOffset = fi.Size()
+				m.fileSize = fi.Size()
 			}
 		}
 	}
