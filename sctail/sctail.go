@@ -58,15 +58,17 @@ func (m *MonitorFile) Start(contentHandler func(string)) error {
 			if !ok {
 				return nil
 			}
-			fmt.Println(event, ok)
+
 			if event.Op&fsnotify.Write == fsnotify.Write {
 				if fi.Size() > m.fileSize {
+					fmt.Println(event, ok)
 					newContent, err := m.readNewContent(m.fileOffset)
 					if err != nil {
 						log.Printf("读取新增内容时出错：%v", err)
 					}
 					contentHandler(newContent)
 					m.fileOffset = fi.Size()
+					m.fileSize = fi.Size()
 				}
 			}
 		case err, ok := <-m.watcher.Errors:
