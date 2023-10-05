@@ -29,6 +29,7 @@ func New(filePath string) *MonitorFile {
 	}
 	monitor := new(MonitorFile)
 	monitor.FilePath = filePath
+	monitor.watcher = watcher
 	return monitor
 }
 func (m *MonitorFile) Close() {
