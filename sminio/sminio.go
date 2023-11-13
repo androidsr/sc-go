@@ -78,7 +78,7 @@ func UploadFile(client *minio.Client, bucketName, objectName, filePath, contentT
 }
 
 func DownloadFileDefault(objectName, bucketName, filePath string) error {
-	return DownloadFile(client, objectName, bucketName, filePath)
+	return DownloadFile(client, bucketName, objectName, filePath)
 }
 
 // DownloadFile 从Minio存储桶中下载文件到本地。
