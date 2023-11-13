@@ -260,3 +260,18 @@ func GetWorkDir() string {
 	str, _ := os.Getwd()
 	return str
 }
+
+func IsFile(file string) bool {
+	_, err := os.Stat(file)
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
+	}
+	return false
+}
+
+func IsDir(dir string) bool {
+	return IsFile(dir)
+}
