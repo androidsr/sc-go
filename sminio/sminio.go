@@ -77,7 +77,7 @@ func UploadFile(client *minio.Client, bucketName, objectName, filePath, contentT
 	return nil
 }
 
-func DownloadFileDefault(objectName, bucketName, filePath string) error {
+func DownloadFileDefault(bucketName, objectName, filePath string) error {
 	return DownloadFile(client, bucketName, objectName, filePath)
 }
 
