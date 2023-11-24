@@ -16,23 +16,25 @@ func New(config *syaml.ProxyInfo) {
 	}
 
 	for _, v := range config.Server {
-		if !strings.HasPrefix(v.Name, "/") {
-			v.Name = "/" + v.Name
-		}
-		if !strings.HasSuffix(v.Name, "/") {
-			v.Name = v.Name + "/"
-		}
-		proxy := &httputil.ReverseProxy{
-			Director: func(req *http.Request) {
-				target, _ := url.Parse(v.Addr)
-				req.URL.Scheme = target.Scheme
-				req.URL.Host = target.Host
-				req.URL.Path = strings.Replace(req.URL.Path, v.Name, "/", 1)
-			},
-		}
-		http.HandleFunc(v.Name, func(w http.ResponseWriter, r *http.Request) {
-			proxy.ServeHTTP(w, r)
-		})
+		go func(v syaml.ProxyServer) {
+			if !strings.HasPrefix(v.Name, "/") {
+				v.Name = "/" + v.Name
+			}
+			if !strings.HasSuffix(v.Name, "/") {
+				v.Name = v.Name + "/"
+			}
+			proxy := &httputil.ReverseProxy{
+				Director: func(req *http.Request) {
+					target, _ := url.Parse(v.Addr)
+					req.URL.Scheme = target.Scheme
+					req.URL.Host = target.Host
+					req.URL.Path = strings.Replace(req.URL.Path, v.Name, "/", 1)
+				},
+			}
+			http.HandleFunc(v.Name, func(w http.ResponseWriter, r *http.Request) {
+				proxy.ServeHTTP(w, r)
+			})
+		}(v)
 	}
 
 	var err error
