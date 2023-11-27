@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	server map[string]string
+	server =make(map[string]string,0)
 )
 
 func New(config *syaml.ProxyInfo) {
