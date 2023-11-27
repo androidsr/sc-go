@@ -15,8 +15,8 @@ const (
 	MULTIPART = "multipart/form-data"
 )
 
-func Get[T any](url string, payload []byte) (T, error) {
-	return request[T](url, http.MethodGet, JSON, payload)
+func Get[T any](url string) (T, error) {
+	return request[T](url, http.MethodGet, JSON, nil)
 }
 
 func Post[T any](url string, payload []byte) (T, error) {
