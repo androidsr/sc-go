@@ -10,12 +10,17 @@ import (
 	"github.com/androidsr/sc-go/syaml"
 )
 
+var (
+	server map[string]string
+)
+
 func New(config *syaml.ProxyInfo) {
 	for _, v := range config.Web {
 		http.Handle(v.Path, http.FileServer(http.Dir(v.Dir)))
 	}
 
 	for _, v := range config.Server {
+		server[v.Name] = v.Addr
 		go func(v syaml.ProxyServer) {
 			if !strings.HasPrefix(v.Name, "/") {
 				v.Name = "/" + v.Name
@@ -46,4 +51,9 @@ func New(config *syaml.ProxyInfo) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+// 获取代理地址
+func GetServer(key string) string {
+	return server[key]
 }
