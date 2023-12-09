@@ -45,6 +45,9 @@ func (m *Wsocket) GetSize() int {
 
 // 绑定客户端
 func (m *Wsocket) Register(userId string, w http.ResponseWriter, r *http.Request) error {
+	defer func() {
+		recover()
+	}()
 	client, err := m.upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		return err
@@ -59,6 +62,9 @@ func (m *Wsocket) Register(userId string, w http.ResponseWriter, r *http.Request
 }
 
 func (m *Wsocket) removeElement(client *websocket.Conn) {
+	defer func() {
+		recover()
+	}()
 	result := make([]*websocket.Conn, 0)
 	for _, item := range m.clientList {
 		if item != client {
@@ -83,6 +89,9 @@ func (m *Wsocket) handler(userId string, client *websocket.Conn) {
 	maxNotPing := 0
 	isRun := true
 	go func() {
+		defer func() {
+			recover()
+		}()
 		ticker := time.NewTicker(m.Interval)
 		for isRun {
 			<-ticker.C
@@ -112,10 +121,16 @@ func (m *Wsocket) handler(userId string, client *websocket.Conn) {
 }
 
 func (m *Wsocket) WriteString(key string, messageType int, message string) {
+	defer func() {
+		recover()
+	}()
 	m.Write(key, messageType, []byte(message))
 }
 
 func (m *Wsocket) Write(key string, messageType int, message []byte) {
+	defer func() {
+		recover()
+	}()
 	if key == "" {
 		for _, client := range m.clients {
 			err := client.WriteMessage(messageType, message)
@@ -145,6 +160,9 @@ func (m *Wsocket) Write(key string, messageType int, message []byte) {
 
 // 关闭客户端 key为空全部关闭
 func (m *Wsocket) Close(key string) {
+	defer func() {
+		recover()
+	}()
 	if key == "" {
 		for _, v := range m.clients {
 			v.Close()
