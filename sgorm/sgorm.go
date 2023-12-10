@@ -155,7 +155,7 @@ func (m *Sgorm) Get(dataAndQuery interface{}) error {
 }
 
 // 分页查询数据
-func (m *Sgorm) SelectPage(data interface{}, page model.PageInfo, sql string, values ...interface{}) *model.PageResult {
+func (m *Sgorm) SelectPage(data interface{}, page *model.PageInfo, sql string, values ...interface{}) *model.PageResult {
 	result := new(model.PageResult)
 	if page != nil {
 		if page.Current == 0 {
