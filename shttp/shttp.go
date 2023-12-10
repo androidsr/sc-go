@@ -3,8 +3,15 @@ package shttp
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
+	"log"
 	"net/http"
+)
+
+var (
+	ProxyUrl string
+	server   = make(map[string]string, 0)
 )
 
 const (
@@ -60,4 +67,32 @@ func request[T any](url string, method string, contentType string, payload []byt
 		return result, err
 	}
 	return result, nil
+}
+
+// 从代理服务获取地址
+func GetServer(name string) (string, error) {
+	if ProxyUrl == "" {
+		return "", errors.New("未配置代理服务器地址")
+	}
+	if len(server) == 0 {
+		getServerInfo()
+	}
+	ip := server[name]
+	if ip == "" {
+		getServerInfo()
+	}
+	ip = server[name]
+	if ip == "" {
+		return "", errors.New("未获取到代理服务地址")
+	}
+	return ip, nil
+}
+
+func getServerInfo() {
+	s, err := Get[map[string]string](ProxyUrl + "/address")
+	if err != nil {
+		log.Printf("获取server代理地址失败")
+		return
+	}
+	server = s
 }

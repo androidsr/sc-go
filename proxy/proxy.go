@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -11,7 +12,7 @@ import (
 )
 
 var (
-	server =make(map[string]string,0)
+	server = make(map[string]string, 0)
 )
 
 func New(config *syaml.ProxyInfo) {
@@ -41,7 +42,13 @@ func New(config *syaml.ProxyInfo) {
 			})
 		}(v)
 	}
-
+	http.HandleFunc("/address", func(w http.ResponseWriter, r *http.Request) {
+		bs, err := json.Marshal(server)
+		if err != nil {
+			w.Write([]byte("{}"))
+		}
+		w.Write(bs)
+	})
 	var err error
 	if config.Cert == "" || config.Key == "" {
 		err = http.ListenAndServe(":"+config.Port, nil)
