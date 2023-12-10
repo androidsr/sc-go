@@ -159,6 +159,12 @@ func (m *Sgorm) Get(dataAndQuery interface{}) error {
 	return m.DB.Where(dataAndQuery).First(dataAndQuery).Error
 }
 
+// 原生sql语句查询
+func (m *Sgorm) SelectSQL(data interface{}, sql string, values ...interface{}) error {
+	err := m.DB.Raw(sql, values...).Scan(data).Error
+	return err
+}
+
 // 分页查询数据
 func (m *Sgorm) SelectPage(data interface{}, page *model.PageInfo, sql string, values ...interface{}) *model.PageResult {
 	result := new(model.PageResult)
