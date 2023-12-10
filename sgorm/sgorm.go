@@ -61,15 +61,15 @@ func New(config *syaml.GormInfo) *Sgorm {
 }
 
 // 判断数据是否存在
-func (m *Sgorm) Exists(obj interface{}) bool {
-	count := m.GetCount(obj)
+func (m *Sgorm) Exists(query interface{}) bool {
+	count := m.GetCount(query)
 	return count > 0
 }
 
 // 按条件获取数据条数
-func (m *Sgorm) GetCount(obj interface{}) int64 {
+func (m *Sgorm) GetCount(query interface{}) int64 {
 	var count int64
-	err := m.DB.Where(obj).Count(&count).Error
+	err := m.DB.Where(query).Count(&count).Error
 	if err != nil {
 		fmt.Printf("Gorm GetCount -> Error：%v\n", err)
 		return 0
@@ -145,19 +145,19 @@ func (m *Sgorm) SelectOne(data interface{}, query interface{}) error {
 }
 
 // 查询一条记录
-func (m *Sgorm) GetOne(data interface{}) error {
-	return m.DB.Where(data).First(data).Error
+func (m *Sgorm) GetOne(dataAndQuery interface{}) error {
+	return m.DB.Where(dataAndQuery).First(dataAndQuery).Error
 }
 
 // 查询一条记录
-func (m *Sgorm) Get(data interface{}) error {
-	return m.DB.Where(data).First(data).Error
+func (m *Sgorm) Get(dataAndQuery interface{}) error {
+	return m.DB.Where(dataAndQuery).First(dataAndQuery).Error
 }
 
 // 分页查询数据
 func (m *Sgorm) SelectPage(data interface{}, page model.PageInfo, sql string, values ...interface{}) *model.PageResult {
 	result := new(model.PageResult)
-	if &page != nil {
+	if page != nil {
 		if page.Current == 0 {
 			page.Current = 1
 		}
