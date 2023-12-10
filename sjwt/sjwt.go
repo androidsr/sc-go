@@ -112,6 +112,7 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 				return
 			}
 		}
+		//将jwt里的存储信息设置当前请求对象中
 		for k, v := range mc {
 			c.Set(k, v)
 		}

@@ -139,6 +139,11 @@ func (m *Sgorm) SelectList(data interface{}, query interface{}) error {
 	return m.DB.Where(query).Find(data).Error
 }
 
+// 查询全部
+func (m *Sgorm) SelectAll(data interface{}) error {
+	return m.DB.Find(data).Error
+}
+
 // 查询一条记录
 func (m *Sgorm) SelectOne(data interface{}, query interface{}) error {
 	return m.DB.Where(query).First(data).Error
