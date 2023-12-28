@@ -74,7 +74,7 @@ func (m *Command) Command(shell string) error {
 	if strings.HasPrefix(shell, "cd ") {
 		m.dir = strings.TrimSpace(shell[3:])
 		if !IsDir(m.dir) {
-			return errors.New("目录不存在")
+			return errors.New("目录不存在:" + m.dir)
 		}
 		return nil
 	}
