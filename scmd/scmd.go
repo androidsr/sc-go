@@ -128,12 +128,14 @@ func (m *Command) Command(shell string) error {
 	os.Chdir(pwd)
 	mutex.Unlock()
 	res := 0
-	if err := m.cmd.Wait(); err != nil {
+	err = m.cmd.Wait()
+	if err != nil {
 		fmt.Println(err)
 		if ex, ok := err.(*exec.ExitError); ok {
 			res = ex.Sys().(syscall.WaitStatus).ExitStatus() //获取命令执行返回状态，相当于shell: echo $?
 		}
 	}
+
 	m.waitRun = false
 	m.isRun = false
 	if res == 0 {
@@ -141,6 +143,6 @@ func (m *Command) Command(shell string) error {
 	} else {
 		bs, _ := io.ReadAll(stderr)
 		stderr.Close()
-		return errors.New(string(bs))
+		return errors.New(string(bs) + err.Error())
 	}
 }
