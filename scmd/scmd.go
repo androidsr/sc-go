@@ -99,6 +99,7 @@ func (m *Command) Command(shell string) error {
 	if err != nil {
 		os.Chdir(pwd)
 		mutex.Unlock()
+		m.callback(shell, err.Error())
 		return err
 	}
 	defer stdout.Close()
@@ -107,6 +108,7 @@ func (m *Command) Command(shell string) error {
 	if err != nil {
 		os.Chdir(pwd)
 		mutex.Unlock()
+		m.callback(shell, err.Error())
 		return err
 	}
 	reader := bufio.NewReader(stdout)
