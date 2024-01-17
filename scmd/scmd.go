@@ -143,6 +143,6 @@ func (m *Command) Command(shell string) error {
 	} else {
 		bs, _ := io.ReadAll(stderr)
 		stderr.Close()
-		return errors.New(string(bs) + err.Error())
+		return errors.New(string(bs))
 	}
 }
