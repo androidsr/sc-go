@@ -3,14 +3,12 @@ package scmd
 import (
 	"bufio"
 	"errors"
-	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"runtime"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/androidsr/sc-go/sc"
@@ -132,9 +130,13 @@ func (m *Command) Command(shell string) error {
 	res := 0
 	err = m.cmd.Wait()
 	if err != nil {
-		fmt.Println(err)
-		if ex, ok := err.(*exec.ExitError); ok {
-			res = ex.Sys().(syscall.WaitStatus).ExitStatus() //获取命令执行返回状态，相当于shell: echo $?
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			res = exitErr.ExitCode()
+			stderr := string(exitErr.Stderr)
+			m.callback(shell, stderr)
+		} else {
+			m.callback(shell, err.Error())
+
 		}
 	}
 
