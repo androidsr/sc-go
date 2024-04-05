@@ -67,7 +67,7 @@ func (m *Command) Command(shell string) error {
 	os.Chdir(m.dir)
 	defer os.Chdir(pwd)
 	if m.sysType == "linux" {
-		if !strings.HasPrefix(shell, "sh ") && (strings.HasSuffix(shell, ".sh") || strings.HasSuffix(shell, ".sh ")) {
+		if !strings.HasPrefix(shell, "sh ") && (strings.HasSuffix(strings.TrimSpace(shell), ".sh") || strings.HasSuffix(strings.TrimSpace(shell), ".sh ")) {
 			shell = "sh " + shell
 		}
 		newSh := strings.Fields(shell)
@@ -118,7 +118,10 @@ func (m *Command) Command(shell string) error {
 		if exitErr, ok := err.(*exec.ExitError); ok {
 			res = exitErr.ExitCode()
 			stderr := string(exitErr.Stderr)
-			m.callback(shell, stderr+exitErr.Error())
+			if res != 0 {
+				stderr += err.Error()
+			}
+			m.callback(shell, stderr)
 		} else {
 			m.callback(shell, err.Error())
 		}
@@ -129,7 +132,6 @@ func (m *Command) Command(shell string) error {
 	} else {
 		bs, _ := io.ReadAll(stderr)
 		stderr.Close()
-		m.callback(shell, err.Error())
 		return errors.New(string(bs))
 	}
 }
