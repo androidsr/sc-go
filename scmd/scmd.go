@@ -9,7 +9,6 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/androidsr/sc-go/sc"
 )
@@ -28,30 +27,17 @@ type Command struct {
 	callback func(shell, output string) bool
 	cmd      *exec.Cmd
 	dir      string
-	isRun    bool
-	waitRun  bool
 }
 
 func New(callback func(shell, output string) bool) *Command {
 	c := &Command{}
-	c.waitRun = true
-	c.isRun = true
 	c.callback = callback
 	c.sysType = runtime.GOOS
 	return c
 }
 
-func (m *Command) WaitRun(callback func(output string)) {
-	go func() {
-		for m.waitRun {
-			time.Sleep(time.Second * time.Duration(2))
-			if !m.isRun && m.waitRun {
-				m.cmd.Process.Kill()
-				callback("======\n终止命令")
-				break
-			}
-		}
-	}()
+func (m *Command) Stop() {
+	m.cmd.Process.Kill()
 }
 
 func IsDir(directoryPath string) bool {
@@ -77,10 +63,12 @@ func (m *Command) Command(shell string) error {
 		return nil
 	}
 	mutex.Lock()
+	defer mutex.Unlock()
 	os.Chdir(m.dir)
+	defer os.Chdir(pwd)
 	if m.sysType == "linux" {
-		newSh := shell
-		m.cmd = exec.Command("bash", "-c", newSh)
+		newSh := strings.Fields(shell)
+		m.cmd = exec.Command(newSh[1], newSh[1:]...)
 	} else if m.sysType == "windows" {
 		var cmdName string
 		args := make([]string, 0)
@@ -95,8 +83,6 @@ func (m *Command) Command(shell string) error {
 	}
 	stdout, err := m.cmd.StdoutPipe()
 	if err != nil {
-		os.Chdir(pwd)
-		mutex.Unlock()
 		m.callback(shell, err.Error())
 		return err
 	}
@@ -104,8 +90,6 @@ func (m *Command) Command(shell string) error {
 	stderr, _ := m.cmd.StderrPipe()
 	err = m.cmd.Start()
 	if err != nil {
-		os.Chdir(pwd)
-		mutex.Unlock()
 		m.callback(shell, err.Error())
 		return err
 	}
@@ -125,10 +109,8 @@ func (m *Command) Command(shell string) error {
 			}
 		}
 	}()
-	os.Chdir(pwd)
-	mutex.Unlock()
-	res := 0
 	err = m.cmd.Wait()
+	res := 0
 	if err != nil {
 		if exitErr, ok := err.(*exec.ExitError); ok {
 			res = exitErr.ExitCode()
@@ -136,17 +118,15 @@ func (m *Command) Command(shell string) error {
 			m.callback(shell, stderr)
 		} else {
 			m.callback(shell, err.Error())
-
 		}
 	}
 
-	m.waitRun = false
-	m.isRun = false
 	if res == 0 {
 		return nil
 	} else {
 		bs, _ := io.ReadAll(stderr)
 		stderr.Close()
+		m.callback(shell, err.Error())
 		return errors.New(string(bs))
 	}
 }
