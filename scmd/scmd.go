@@ -67,11 +67,13 @@ func (m *Command) Command(shell string) error {
 	os.Chdir(m.dir)
 	defer os.Chdir(pwd)
 	if m.sysType == "linux" {
-		if !strings.HasPrefix(shell, "sh ") && (strings.HasSuffix(strings.TrimSpace(shell), ".sh") || strings.HasSuffix(strings.TrimSpace(shell), ".sh ")) {
-			shell = "sh " + shell
+		if !strings.HasPrefix(shell, "sh ") && (strings.HasSuffix(strings.TrimSpace(shell), ".sh") || strings.Contains(strings.TrimSpace(shell), ".sh ")) {
+			m.cmd = exec.Command("bash", "-c", shell)
+		} else {
+			newSh := strings.Fields(shell)
+			m.cmd = exec.Command(newSh[0], newSh[1:]...)
 		}
-		newSh := strings.Fields(shell)
-		m.cmd = exec.Command(newSh[0], newSh[1:]...)
+
 	} else if m.sysType == "windows" {
 		var cmdName string
 		args := make([]string, 0)
