@@ -115,7 +115,7 @@ func (m *Command) Command(shell string) error {
 		if exitErr, ok := err.(*exec.ExitError); ok {
 			res = exitErr.ExitCode()
 			stderr := string(exitErr.Stderr)
-			m.callback(shell, stderr)
+			m.callback(shell, stderr+exitErr.Error())
 		} else {
 			m.callback(shell, err.Error())
 		}
