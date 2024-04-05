@@ -67,6 +67,9 @@ func (m *Command) Command(shell string) error {
 	os.Chdir(m.dir)
 	defer os.Chdir(pwd)
 	if m.sysType == "linux" {
+		if !strings.HasPrefix(shell, "sh ") && (strings.HasSuffix(shell, ".sh") || strings.HasSuffix(shell, ".sh ")) {
+			shell = "sh " + shell
+		}
 		newSh := strings.Fields(shell)
 		m.cmd = exec.Command(newSh[0], newSh[1:]...)
 	} else if m.sysType == "windows" {
