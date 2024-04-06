@@ -3,19 +3,16 @@ package scmd
 import (
 	"bufio"
 	"errors"
-	"io"
 	"os"
 	"os/exec"
 	"runtime"
 	"strings"
-	"sync"
 
 	"github.com/androidsr/sc-go/sc"
 )
 
 var (
-	mutex sync.Mutex
-	pwd   string
+	pwd string
 )
 
 func init() {
@@ -62,10 +59,6 @@ func (m *Command) Command(shell string) error {
 		}
 		return nil
 	}
-	mutex.Lock()
-	defer mutex.Unlock()
-	os.Chdir(m.dir)
-	defer os.Chdir(pwd)
 	if m.sysType == "linux" {
 		if !strings.HasPrefix(shell, "sh ") && (strings.HasSuffix(strings.TrimSpace(shell), ".sh") || strings.Contains(strings.TrimSpace(shell), ".sh ")) {
 			m.cmd = exec.Command("bash", "-c", shell)
@@ -73,7 +66,6 @@ func (m *Command) Command(shell string) error {
 			newSh := strings.Fields(shell)
 			m.cmd = exec.Command(newSh[0], newSh[1:]...)
 		}
-
 	} else if m.sysType == "windows" {
 		var cmdName string
 		args := make([]string, 0)
@@ -86,54 +78,37 @@ func (m *Command) Command(shell string) error {
 		}
 		m.cmd = exec.Command(cmdName, args...)
 	}
+	m.cmd.Dir = m.dir
+
 	stdout, err := m.cmd.StdoutPipe()
 	if err != nil {
 		m.callback(shell, err.Error())
 		return err
 	}
 	defer stdout.Close()
+
 	stderr, _ := m.cmd.StderrPipe()
 	err = m.cmd.Start()
 	if err != nil {
 		m.callback(shell, err.Error())
 		return err
 	}
-	reader := bufio.NewReader(stdout)
+	defer stderr.Close()
+
 	go func() {
-		for {
-			line, err := reader.ReadString('\n')
-			if err != nil {
-				if err != io.EOF {
-					m.callback(shell, err.Error())
-				}
-				break
-			}
-			result := m.callback(shell, line)
-			if !result {
-				break
-			}
+		scanner := bufio.NewScanner(stdout)
+		for scanner.Scan() {
+			m.callback(shell, scanner.Text())
 		}
 	}()
-	err = m.cmd.Wait()
-	res := 0
-	if err != nil {
-		if exitErr, ok := err.(*exec.ExitError); ok {
-			res = exitErr.ExitCode()
-			stderr := string(exitErr.Stderr)
-			if res != 0 {
-				stderr += err.Error()
-			}
-			m.callback(shell, stderr)
-		} else {
-			m.callback(shell, err.Error())
+	go func() {
+		scanner := bufio.NewScanner(stderr)
+		for scanner.Scan() {
+			m.callback(shell, scanner.Text())
 		}
+	}()
+	if err := m.cmd.Wait(); err != nil {
+		m.callback(shell, err.Error())
 	}
-
-	if res == 0 {
-		return nil
-	} else {
-		bs, _ := io.ReadAll(stderr)
-		stderr.Close()
-		return errors.New(string(bs))
-	}
+	return nil
 }
