@@ -63,7 +63,8 @@ func (m *Command) Command(shell string) error {
 		if (!strings.HasPrefix(shell, "sh ") && (strings.HasSuffix(strings.TrimSpace(shell), ".sh") ||
 			strings.Contains(strings.TrimSpace(shell), ".sh "))) || strings.Contains(shell, " && ") ||
 			strings.HasPrefix(strings.TrimSpace(shell), "mv ") || strings.HasPrefix(strings.TrimSpace(shell), "cp ") ||
-			strings.HasPrefix(strings.TrimSpace(shell), "rm ") {
+			strings.HasPrefix(strings.TrimSpace(shell), "rm ") || strings.HasPrefix(strings.TrimSpace(shell), "tar ") ||
+			strings.HasPrefix(strings.TrimSpace(shell), "unzip ") {
 			m.cmd = exec.Command("bash", "-c", shell)
 		} else {
 			newSh := strings.Fields(shell)
