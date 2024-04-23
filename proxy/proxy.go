@@ -1,7 +1,6 @@
 package proxy
 
 import (
-	"embed"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -16,14 +15,10 @@ var (
 	server = make(map[string]string, 0)
 )
 
-//go:embed ui/*
-var staticContent embed.FS
-
 func New(config *syaml.ProxyInfo) {
 	for _, v := range config.Web {
 		http.Handle(v.Path, http.FileServer(http.Dir(v.Dir)))
 	}
-	http.Handle("/", http.FileServer(http.FS(staticContent)))
 
 	for _, v := range config.Server {
 		server[v.Name] = v.Addr
