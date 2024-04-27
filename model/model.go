@@ -67,8 +67,12 @@ type HttpResult struct {
 	Data interface{} `json:"data"`
 }
 
-func NewFailDefault(msg string) HttpResult {
+func NewFailDefaultMsg() HttpResult {
 	return HttpResult{Code: FAIL, Msg: FAIL_MSG}
+}
+
+func NewFailDefault(msg string) HttpResult {
+	return HttpResult{Code: FAIL, Msg: msg}
 }
 
 func NewFailDefaultCode(msg string) HttpResult {
