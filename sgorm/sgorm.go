@@ -125,13 +125,13 @@ func (m *Sgorm) Delete(obj interface{}, query interface{}, args ...interface{}) 
 }
 
 // 删除数据
-func (m *Sgorm) DeleteById(obj interface{}, id interface{}) error {
-	return m.DB.Delete(obj, id).Error
+func (m *Sgorm) DeleteById(obj interface{}, conds ...interface{}) error {
+	return m.DB.Delete(obj, conds...).Error
 }
 
 // 删除数据
-func (m *Sgorm) DeleteByIds(obj interface{}, ids []interface{}) error {
-	return m.DB.Delete(obj, ids).Error
+func (m *Sgorm) DeleteByIds(obj interface{}, ids ...interface{}) error {
+	return m.DB.Delete(obj, ids[0], ids[1:]).Error
 }
 
 // 查询集合
