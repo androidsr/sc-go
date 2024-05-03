@@ -69,7 +69,7 @@ func (m *Sgorm) Exists(query interface{}) bool {
 // 按条件获取数据条数
 func (m *Sgorm) GetCount(query interface{}) int64 {
 	var count int64
-	err := m.DB.Where(query).Count(&count).Error
+	err := m.DB.Model(query).Where(query).Count(&count).Error
 	if err != nil {
 		fmt.Printf("Gorm GetCount -> Error：%v\n", err)
 		return 0
