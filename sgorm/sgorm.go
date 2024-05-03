@@ -207,3 +207,62 @@ func (m *Sgorm) SelectPage(data interface{}, page *model.PageInfo, sql string, v
 	result.Rows = data
 	return result
 }
+
+// 删除数据
+func Delete[T any](query string, args ...interface{}) *gorm.DB {
+	return DB.Where(query, args...).Delete(new(T))
+}
+
+// 删除数据
+func DeleteById[T any](id interface{}) error {
+	return DB.Delete(new(T), id).Error
+}
+
+// 删除数据
+func DeleteByIds[T any](ids []interface{}) error {
+	return DB.Delete(new(T), ids).Error
+}
+
+// 查询集合
+func SelectList[T any](query interface{}) []T {
+	to := make([]T, 0)
+	err := DB.Where(query).Find(&to).Error
+	if err != nil {
+		log.Printf("Gorm SelectList -> Error：%v\n", err)
+		return nil
+	}
+	return to
+}
+
+// 查询全部
+func SelectAll[T any]() []T {
+	to := make([]T, 0)
+	err := DB.Find(&to).Error
+	if err != nil {
+		log.Printf("Gorm SelectList -> Error：%v\n", err)
+		return nil
+	}
+	return to
+}
+
+// 查询一条记录
+func SelectOne[T any](data interface{}, query interface{}) *T {
+	to := new(T)
+	err := DB.Where(query).First(to).Error
+	if err != nil {
+		log.Printf("Gorm SelectList -> Error：%v\n", err)
+		return nil
+	}
+	return to
+}
+
+// 查询一条记录
+func Get[T any](query interface{}) *T {
+	to := new(T)
+	err := DB.Where(query).First(to).Error
+	if err != nil {
+		log.Printf("Gorm SelectList -> Error：%v\n", err)
+		return nil
+	}
+	return to
+}
