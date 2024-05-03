@@ -101,9 +101,9 @@ func ParseDateTimeNumber(ymd string) time.Time {
 	return t
 }
 
-func Copy[T any](from interface{}) T {
-	var to T
-	err := copier.CopyWithOption(&to, &from, copier.Option{IgnoreEmpty: true, DeepCopy: true})
+func Copy[T any](from interface{}) *T {
+	var to = new(T)
+	err := copier.CopyWithOption(to, from, copier.Option{IgnoreEmpty: true, DeepCopy: true})
 	if err != nil {
 		log.Printf("结构体复制出错：%v", err)
 	}
@@ -111,7 +111,7 @@ func Copy[T any](from interface{}) T {
 }
 
 func CopyTo(from interface{}, to interface{}) {
-	err := copier.CopyWithOption(&to, from, copier.Option{IgnoreEmpty: true, DeepCopy: true})
+	err := copier.CopyWithOption(to, from, copier.Option{IgnoreEmpty: true, DeepCopy: true})
 	if err != nil {
 		log.Printf("结构体复制出错：%v", err)
 	}
@@ -119,7 +119,7 @@ func CopyTo(from interface{}, to interface{}) {
 
 func CopySlice[T any](from interface{}) []T {
 	to := make([]T, 0)
-	err := copier.CopyWithOption(&to, &from, copier.Option{IgnoreEmpty: true, DeepCopy: true})
+	err := copier.CopyWithOption(to, from, copier.Option{IgnoreEmpty: true, DeepCopy: true})
 	if err != nil {
 		log.Printf("结构体复制数组出错：%v", err)
 	}
