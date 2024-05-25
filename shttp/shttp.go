@@ -3,19 +3,12 @@ package shttp
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
-)
-
-var (
-	ProxyUrl string
-	server   = make(map[string]string, 0)
 )
 
 const (
@@ -107,32 +100,4 @@ func formatRequestBody(body interface{}, contentType string) (io.Reader, error) 
 		return nil, fmt.Errorf("不支持的内容类型: %s", contentType)
 	}
 	return requestBody, nil
-}
-
-// 从代理服务获取地址
-func GetServer(name string) (string, error) {
-	if ProxyUrl == "" {
-		return "", errors.New("未配置代理服务器地址")
-	}
-	if len(server) == 0 {
-		getServerInfo()
-	}
-	ip := server[name]
-	if ip == "" {
-		getServerInfo()
-	}
-	ip = server[name]
-	if ip == "" {
-		return "", errors.New("未获取到代理服务地址")
-	}
-	return ip, nil
-}
-
-func getServerInfo() {
-	s, err := Get[map[string]string](ProxyUrl + "/address")
-	if err != nil {
-		log.Printf("获取server代理地址失败")
-		return
-	}
-	server = s
 }
