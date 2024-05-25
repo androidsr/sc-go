@@ -4,9 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"net/url"
+	"strings"
+	"time"
 )
 
 var (
@@ -22,51 +26,87 @@ const (
 	MULTIPART = "multipart/form-data"
 )
 
-func Get[T any](url string) (T, error) {
-	return request[T](url, http.MethodGet, JSON, nil)
+func Get(url string, contentType string, headers map[string]string) ([]byte, error) {
+	return request(url, http.MethodGet, contentType, headers, nil)
 }
 
-func Post[T any](url string, payload []byte) (T, error) {
-	return request[T](url, http.MethodPost, JSON, payload)
+func Post(url string, contentType string, headers map[string]string, body interface{}) ([]byte, error) {
+	return request(url, http.MethodPost, contentType, headers, body)
 }
 
-func Put[T any](url string, payload []byte) (T, error) {
-	return request[T](url, http.MethodPut, JSON, payload)
+func Put(url string, contentType string, headers map[string]string, body interface{}) ([]byte, error) {
+	return request(url, http.MethodPut, contentType, headers, body)
 }
 
-func Delete[T any](url string, payload []byte) (T, error) {
-	return request[T](url, http.MethodDelete, JSON, payload)
+func Delete(url string, contentType string, headers map[string]string, body interface{}) ([]byte, error) {
+	return request(url, http.MethodDelete, contentType, headers, body)
 }
 
-func PostForm[T any](url string, payload []byte) (T, error) {
-	return request[T](url, http.MethodPost, JSON, payload)
+func PostForm(url string, contentType string, headers map[string]string, body interface{}) ([]byte, error) {
+	return request(url, http.MethodPost, contentType, headers, body)
 }
 
-func request[T any](url string, method string, contentType string, payload []byte) (T, error) {
-	client := &http.Client{}
-	var response *http.Response
-	var err error
-	var result T
-
-	req, err := http.NewRequest(http.MethodGet, url, bytes.NewBuffer(payload))
+func request(method, url, contentType string, headers map[string]string, body interface{}) ([]byte, error) {
+	requestBody, err := formatRequestBody(body, contentType)
 	if err != nil {
-		return result, err
+		return nil, err
 	}
-	response, err = client.Do(req)
-	if err != nil {
-		return result, err
-	}
-	defer response.Body.Close()
 
-	body, err := io.ReadAll(response.Body)
+	req, err := http.NewRequest(method, url, requestBody)
 	if err != nil {
-		return result, err
+		return nil, err
 	}
-	err = json.Unmarshal(body, &result)
+
+	headers["Content-Type"] = contentType
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+	client := http.Client{Timeout: time.Second * 30}
+	resp, err := client.Do(req)
 	if err != nil {
-		return result, err
+		return nil, err
 	}
-	return result, nil
+	defer resp.Body.Close()
+
+	responseBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	return responseBody, nil
+}
+
+func formatRequestBody(body interface{}, contentType string) (io.Reader, error) {
+	if body == nil {
+		return nil, nil
+	}
+	var requestBody io.Reader
+	switch contentType {
+	case "application/json":
+		jsonBody, err := json.Marshal(body)
+		if err != nil {
+			return nil, err
+		}
+		requestBody = bytes.NewBuffer(jsonBody)
+	case "application/x-www-form-urlencoded":
+		formData := url.Values{}
+		if data, ok := body.(map[string]string); ok {
+			for key, value := range data {
+				formData.Set(key, value)
+			}
+		} else {
+			return nil, fmt.Errorf("主体应该是map[string]string类型的表单数据")
+		}
+		requestBody = strings.NewReader(formData.Encode())
+	case "text/xml", "application/xml":
+		if str, ok := body.(string); ok {
+			requestBody = strings.NewReader(str)
+		} else {
+			return nil, fmt.Errorf("对于XML数据，body应该是字符串类型")
+		}
+	default:
+		return nil, fmt.Errorf("不支持的内容类型: %s", contentType)
+	}
+	return requestBody, nil
 }
 
 // 从代理服务获取地址
