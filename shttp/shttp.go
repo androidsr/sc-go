@@ -39,7 +39,7 @@ func PostForm(url string, contentType string, headers map[string]string, body in
 	return request(url, http.MethodPost, contentType, headers, body)
 }
 
-func request(method, url, contentType string, headers map[string]string, body interface{}) ([]byte, error) {
+func request(url, method, contentType string, headers map[string]string, body interface{}) ([]byte, error) {
 	requestBody, err := formatRequestBody(body, contentType)
 	if err != nil {
 		return nil, err
@@ -82,9 +82,9 @@ func formatRequestBody(body interface{}, contentType string) (io.Reader, error) 
 		requestBody = bytes.NewBuffer(jsonBody)
 	case "application/x-www-form-urlencoded":
 		formData := url.Values{}
-		if data, ok := body.(map[string]string); ok {
+		if data, ok := body.(map[string]interface{}); ok {
 			for key, value := range data {
-				formData.Set(key, value)
+				formData.Set(key, fmt.Sprint(value))
 			}
 		} else {
 			return nil, fmt.Errorf("主体应该是map[string]string类型的表单数据")
