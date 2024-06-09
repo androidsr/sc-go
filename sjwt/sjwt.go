@@ -50,12 +50,30 @@ func ParseToken(tokenString string) (jwt.MapClaims, error) {
 	return nil, errors.New("invalid token")
 }
 
-func SetWebToken(c *gin.Context, tokenStr string) {
+func SetToken(c *gin.Context, tokenStr string) {
 	switch config.StoreType {
 	case 1:
 		c.Header(config.TokenName, tokenStr)
 	case 2:
 		c.SetCookie(config.TokenName, tokenStr, 60*config.Expire, "", "", false, true)
+	}
+}
+
+func AddToken(c *gin.Context, key string, value string) {
+	switch config.StoreType {
+	case 1:
+		c.Header(key, value)
+	case 2:
+		c.SetCookie(key, value, 60*config.Expire, "", "", false, true)
+	}
+}
+
+func RemoveToken(c *gin.Context, key string) {
+	switch config.StoreType {
+	case 1:
+		c.Header(key, "")
+	case 2:
+		c.SetCookie(key, "", -1, "", "", false, true)
 	}
 }
 
