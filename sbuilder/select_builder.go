@@ -61,6 +61,26 @@ func Builder(sql string) *SelectBuilder {
 	return builder
 }
 
+func (m *SelectBuilder) IsNull(column string) string {
+	sql := fmt.Sprintf(" %s %s is null ", m.link, column)
+	if m.links {
+		return sql
+	} else {
+		m.Sql.WriteString(sql)
+	}
+	return ""
+}
+
+func (m *SelectBuilder) IsNotNull(column string) string {
+	sql := fmt.Sprintf(" %s %s is not null ", m.link, column)
+	if m.links {
+		return sql
+	} else {
+		m.Sql.WriteString(sql)
+	}
+	return ""
+}
+
 func (m *SelectBuilder) Eq(column string, value interface{}) string {
 	if value == nil || value == "" {
 		return ""
