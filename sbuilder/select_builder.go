@@ -62,7 +62,7 @@ func Builder(sql string) *SelectBuilder {
 }
 
 func (m *SelectBuilder) IsNull(column string) string {
-	sql := fmt.Sprintf(" ( %s %s is null or %s %s = '') ", m.link, column, m.link, column)
+	sql := fmt.Sprintf(" ( %s %s is null or %s = '') ", m.link, column, column)
 	if m.links {
 		return sql
 	} else {
@@ -72,7 +72,7 @@ func (m *SelectBuilder) IsNull(column string) string {
 }
 
 func (m *SelectBuilder) IsNotNull(column string) string {
-	sql := fmt.Sprintf(" ( %s %s is not null and %s %s != '') ", m.link, column, m.link, column)
+	sql := fmt.Sprintf(" ( %s %s is not null and %s != '') ", m.link, column, column)
 	if m.links {
 		return sql
 	} else {
