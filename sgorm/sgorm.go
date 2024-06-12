@@ -126,12 +126,12 @@ func (m *Sgorm) Delete(obj interface{}, query interface{}, args ...interface{}) 
 
 // 删除数据
 func (m *Sgorm) DeleteById(obj interface{}, conds ...interface{}) error {
-	return m.DB.Delete(obj, conds...).Error
+	return m.DB.Model(obj).Delete(obj, conds...).Error
 }
 
 // 删除数据
 func (m *Sgorm) DeleteByIds(obj interface{}, ids ...interface{}) error {
-	return m.DB.Delete(obj, ids[0], ids[1:]).Error
+	return m.DB.Model(obj).Delete(obj, ids[0], ids[1:]).Error
 }
 
 // 查询集合
@@ -210,17 +210,17 @@ func (m *Sgorm) SelectPage(data interface{}, page *model.PageInfo, sql string, v
 
 // 删除数据
 func Delete[T any](query string, args ...interface{}) *gorm.DB {
-	return DB.Where(query, args...).Delete(new(T))
+	return DB.Model(new(T)).Where(query, args...).Delete(new(T))
 }
 
 // 删除数据
 func DeleteById[T any](id interface{}) error {
-	return DB.Delete(new(T), id).Error
+	return DB.Model(new(T)).Delete(new(T), id).Error
 }
 
 // 删除数据
 func DeleteByIds[T any](ids []interface{}) error {
-	return DB.Delete(new(T), ids).Error
+	return DB.Model(new(T)).Delete(new(T), ids).Error
 }
 
 // 查询集合
