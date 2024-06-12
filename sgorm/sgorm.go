@@ -121,7 +121,7 @@ func (m *Sgorm) Update(obj interface{}, query string, args ...interface{}) *gorm
 
 // 删除数据
 func (m *Sgorm) Delete(obj interface{}, query interface{}, args ...interface{}) *gorm.DB {
-	return m.DB.Where(query, args...).Delete(obj)
+	return m.DB.Model(obj).Where(query, args...).Delete(obj)
 }
 
 // 删除数据
