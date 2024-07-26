@@ -79,7 +79,7 @@ func (m *Wsocket) handler(userId string, client *websocket.Conn) {
 		recover()
 	}()
 	defer func() {
-		if userId != "" {
+		if userId != "" && m.clients != nil && m.clients[userId] != nil {
 			delete(m.clients, userId)
 		} else {
 			m.removeElement(client)
