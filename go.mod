@@ -13,6 +13,7 @@ require (
 	github.com/jinzhu/copier v0.3.5
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/kardianos/service v1.2.2
+	github.com/lesismal/nbio v1.5.9
 	github.com/minio/minio-go/v7 v7.0.63
 	github.com/nacos-group/nacos-sdk-go/v2 v2.2.2
 	github.com/oleiade/reflections v1.0.1
@@ -72,6 +73,7 @@ require (
 	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
 	github.com/kr/fs v0.1.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
+	github.com/lesismal/llib v1.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mattn/go-sqlite3 v1.14.17 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
