@@ -10,9 +10,11 @@ import (
 	"github.com/lesismal/nbio/nbhttp"
 	"github.com/lesismal/nbio/nbhttp/websocket"
 )
-var(
+
+var (
 	WsServer *WebSocketServer
 )
+
 type Session struct {
 	Id string `json:"id"`
 }
@@ -37,7 +39,7 @@ func NewServer(r *gin.Engine) *WebSocketServer {
 		upgrader: websocket.NewUpgrader(),
 		r:        r,
 	}
-	WsServer.upgrader.OnClose(server.handleClose)
+	WsServer.upgrader.OnClose(WsServer.handleClose)
 	return WsServer
 }
 
@@ -62,6 +64,9 @@ func (s *WebSocketServer) Start(addrs string, maxLoad int) error {
 	return nil
 }
 
+func (s *WebSocketServer) GetSize() int {
+	return len(s.clients)
+}
 func (s *WebSocketServer) Close() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
