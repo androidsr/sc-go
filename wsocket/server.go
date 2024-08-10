@@ -10,7 +10,9 @@ import (
 	"github.com/lesismal/nbio/nbhttp"
 	"github.com/lesismal/nbio/nbhttp/websocket"
 )
-
+var(
+	WsServer *WebSocketServer
+)
 type Session struct {
 	Id string `json:"id"`
 }
@@ -30,13 +32,13 @@ type WebSocketServer struct {
 }
 
 func NewServer(r *gin.Engine) *WebSocketServer {
-	server := &WebSocketServer{
+	WsServer = &WebSocketServer{
 		clients:  make(map[string]*Client),
 		upgrader: websocket.NewUpgrader(),
 		r:        r,
 	}
-	server.upgrader.OnClose(server.handleClose)
-	return server
+	WsServer.upgrader.OnClose(server.handleClose)
+	return WsServer
 }
 
 func (s *WebSocketServer) OnMessage(handleMessage func(conn *websocket.Conn, messageType websocket.MessageType, data []byte)) {
