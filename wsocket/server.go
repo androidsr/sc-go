@@ -3,6 +3,7 @@ package wsocket
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"sync"
 	"time"
 
@@ -38,6 +39,9 @@ func NewServer(r *gin.Engine) *WebSocketServer {
 		clients:  make(map[string]*Client),
 		upgrader: websocket.NewUpgrader(),
 		r:        r,
+	}
+	WsServer.upgrader.CheckOrigin = func(r *http.Request) bool {
+		return true
 	}
 	WsServer.upgrader.OnClose(WsServer.handleClose)
 	return WsServer
