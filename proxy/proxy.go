@@ -35,7 +35,7 @@ func New(config *syaml.ProxyInfo) {
 					req.URL.Scheme = target.Scheme
 					req.URL.Host = target.Host
 					if !v.Prefix {
-						req.URL.Path = strings.TrimPrefix(req.URL.Path, v.Name)
+						req.URL.Path = "/" + strings.TrimPrefix(req.URL.Path, v.Name)
 					}
 					log.Printf("代理请求从 %s 到 %s%s", req.URL.Path, target.String(), req.URL.Path)
 				},
