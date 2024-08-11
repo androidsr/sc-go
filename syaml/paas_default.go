@@ -61,8 +61,9 @@ type ProxyWeb struct {
 }
 
 type ProxyServer struct {
-	Name string `yaml:"name"`
-	Addr string `yaml:"addr"`
+	Name   string `yaml:"name"`
+	Prefix bool   `yaml:"prefix"`
+	Addr   string `yaml:"addr"`
 }
 
 type NacosInfo struct {
