@@ -34,7 +34,9 @@ func New(config *syaml.ProxyInfo) {
 					target, _ := url.Parse(v.Addr)
 					req.URL.Scheme = target.Scheme
 					req.URL.Host = target.Host
-					req.URL.Path = strings.Replace(req.URL.Path, v.Name, "/", 1)
+					// 从请求 URL 路径中移除前缀
+					req.URL.Path = strings.TrimPrefix(req.URL.Path, v.Name)
+					log.Printf("代理请求从 %s 到 %s%s", req.URL.Path, target.String(), req.URL.Path)
 				},
 			}
 			http.HandleFunc(v.Name, func(w http.ResponseWriter, r *http.Request) {
