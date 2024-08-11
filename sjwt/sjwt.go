@@ -1,6 +1,7 @@
 package sjwt
 
 import (
+	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/androidsr/sc-go/model"
 	"github.com/androidsr/sc-go/sc"
+	"github.com/androidsr/sc-go/shttp"
 	"github.com/androidsr/sc-go/syaml"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
@@ -102,37 +104,74 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 			c.Abort()
 			return
 		}
-		mc, err := ParseToken(tokenStr)
-		if err != nil {
-			log.Println(err)
-			c.JSON(http.StatusUnauthorized, model.NewFail(401, "无效的Token"))
-			c.Abort()
-			return
-		}
-		// 检查JWT令牌是否快要过期
-		e, ok := mc["expiresAt"].(string)
-		if !ok {
-			c.JSON(http.StatusUnauthorized, model.NewFail(401, "无效的Token"))
-			c.Abort()
-		}
-
-		expiresAt := sc.ParseDateTime(e)
-		if expiresAt.Sub(time.Now().Local()).Minutes() <= float64(config.Expire/3) {
-			log.Println("刷新token")
-			// 如果快要过期，则刷新JWT令牌
-			tokenStr, _ := GenerateToken(mc)
-			switch config.StoreType {
-			case 1:
-				c.Writer.Header().Set(config.TokenName, tokenStr)
-			case 2:
-				c.SetCookie(config.TokenName, tokenStr, config.Expire*60, "", "", false, true)
-			case 3:
+		if config.CheckUrl == "" {
+			mc, err := ParseToken(tokenStr)
+			if err != nil {
+				log.Println(err)
+				c.JSON(http.StatusUnauthorized, model.NewFail(401, "无效的Token"))
+				c.Abort()
 				return
 			}
-		}
-		//将jwt里的存储信息设置当前请求对象中
-		for k, v := range mc {
-			c.Set(k, v)
+			// 检查JWT令牌是否快要过期
+			e, ok := mc["expiresAt"].(string)
+			if !ok {
+				c.JSON(http.StatusUnauthorized, model.NewFail(401, "无效的Token"))
+				c.Abort()
+				return
+			}
+
+			expiresAt := sc.ParseDateTime(e)
+			if expiresAt.Sub(time.Now().Local()).Minutes() <= float64(config.Expire/3) {
+				log.Println("刷新token")
+				// 如果快要过期，则刷新JWT令牌
+				tokenStr, _ := GenerateToken(mc)
+				switch config.StoreType {
+				case 1:
+					c.Writer.Header().Set(config.TokenName, tokenStr)
+				case 2:
+					c.SetCookie(config.TokenName, tokenStr, config.Expire*60, "", "", false, true)
+				case 3:
+					return
+				}
+			}
+			//将jwt里的存储信息设置当前请求对象中
+			for k, v := range mc {
+				c.Set(k, v)
+			}
+		} else {
+			headers := make(map[string]string, 0)
+			var url = config.CheckUrl
+			switch config.StoreType {
+			case 1:
+				tokenStr = c.Request.Header.Get(config.TokenName)
+				headers[config.TokenName] = tokenStr
+			case 2:
+				headers["Cookie"] = config.TokenName + "=" + tokenStr
+				headers["Cookie"] = config.TokenName + "=" + tokenStr
+			case 3:
+				tokenStr = c.Param(config.TokenName)
+				url += "?" + config.TokenName + "=" + tokenStr
+			}
+			data, err := shttp.Get(url, shttp.JSON, headers)
+			if err != nil {
+				c.JSON(http.StatusOK, model.NewFailDefault("权限验证失败"))
+				c.Abort()
+			}
+			result := model.HttpResult{}
+			err = json.Unmarshal(data, &result)
+			if err != nil {
+				c.JSON(http.StatusOK, model.NewFailDefault("权限验证返回数据格式不正确"))
+				c.Abort()
+				return
+			}
+			if result.Code != 200 {
+				c.JSON(http.StatusOK, result)
+				c.Abort()
+				return
+			}
+			for k, v := range result.Data.(map[string]interface{}) {
+				c.Set(k, v.(string))
+			}
 		}
 		c.Next()
 	}

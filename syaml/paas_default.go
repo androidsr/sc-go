@@ -134,6 +134,7 @@ type WebTokenInfo struct {
 	StoreType int      `yaml:"storeType"`
 	SecretKey string   `yaml:"secretKey"`
 	Expire    int      `yaml:"expire"`
+	CheckUrl  string   `yaml:"check-url"`
 	WhiteList []string `yaml:"whiteList"`
 }
 
@@ -147,7 +148,7 @@ type MinioInfo struct {
 
 type EmailInfo struct {
 	Host     string `yaml:"host"`
-	Port     int `yaml:"port"`
+	Port     int    `yaml:"port"`
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
 }
