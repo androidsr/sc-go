@@ -8,8 +8,8 @@ const (
 )
 
 type PageInfo struct {
-	Current int64       `json:"current" keyword:"eq"`
-	Size    int64       `json:"size"`
+	Current int64       `json:"current" keyword:"eq"  column:"-"`
+	Size    int64       `json:"size"  column:"-"`
 	Orders  []OrderItem `json:"orders"`
 }
 
