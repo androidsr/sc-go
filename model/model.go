@@ -8,9 +8,9 @@ const (
 )
 
 type PageInfo struct {
-	Current int64       `json:"current" keyword:"eq"  column:"-"`
-	Size    int64       `json:"size"  column:"-"`
-	Orders  []OrderItem `json:"orders"`
+	Current int64       `json:"current" keyword:"eq"`
+	Size    int64       `json:"size"`
+	Orders  []OrderItem `json:"orders"  `
 }
 
 func (m *PageInfo) SetPage(current int64, size int64) *PageInfo {
