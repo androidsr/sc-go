@@ -72,12 +72,18 @@ func (s *WebSocketServer) GetSize() int {
 	return len(s.clients)
 }
 func (s *WebSocketServer) Close() {
+	defer func(){
+		recover()
+	}()
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
 	s.engine.Shutdown(ctx)
 }
 
 func (s *WebSocketServer) handleClose(conn *websocket.Conn, err error) {
+	defer func(){
+		recover()
+	}()
 	session := conn.Session().(*Session)
 	clientID := session.Id
 	client := s.clients[clientID]
@@ -88,6 +94,9 @@ func (s *WebSocketServer) handleClose(conn *websocket.Conn, err error) {
 }
 
 func (s *WebSocketServer) HeartbeatCheck() {
+	defer func(){
+		recover()
+	}()
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
 
@@ -112,6 +121,9 @@ func (s *WebSocketServer) HeartbeatCheck() {
 }
 
 func (s *WebSocketServer) SendToClient(clientID string, message []byte) {
+	defer func(){
+		recover()
+	}()
 	if client, ok := s.clients[clientID]; ok {
 		client.mu.Lock()
 		client.Conn.WriteMessage(websocket.TextMessage, message)
