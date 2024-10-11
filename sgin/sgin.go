@@ -19,7 +19,7 @@ import (
 var (
 	ctrls       []interface{}
 	config      *syaml.GinInfo
-	threadLocal = routine.NewInheritableThreadLocal()
+	threadLocal = routine.NewInheritableThreadLocal[any]()
 )
 
 type SGin struct {
@@ -44,7 +44,7 @@ func (m *SGin) RunServer() error {
 	return m.Run(fmt.Sprintf(":%d", config.Port))
 }
 
-func (s *SGin) GetContent() routine.ThreadLocal {
+func (s *SGin) GetContent() routine.ThreadLocal[any] {
 	return threadLocal
 }
 
