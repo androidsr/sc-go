@@ -3,7 +3,6 @@ module sc-go
 go 1.23.2
 
 require (
-	github.com/androidsr/sc-go v0.0.0-20241011090400-e645adbff4de
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/gin-gonic/gin v1.10.0

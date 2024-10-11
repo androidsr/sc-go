@@ -1,7 +1,8 @@
 package sno
 
 import (
-	"github.com/androidsr/sc-go/syaml"
+	"sc-go/syaml"
+
 	"github.com/bwmarrin/snowflake"
 )
 

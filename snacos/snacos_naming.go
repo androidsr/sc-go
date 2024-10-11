@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/androidsr/sc-go/sc"
-	"github.com/androidsr/sc-go/syaml"
+	"sc-go/sc"
+	"sc-go/syaml"
+
 	"github.com/nacos-group/nacos-sdk-go/v2/clients"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients/naming_client"
 	"github.com/nacos-group/nacos-sdk-go/v2/model"

@@ -6,9 +6,8 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"sc-go/syaml"
 	"strings"
-
-	"github.com/androidsr/sc-go/syaml"
 )
 
 var (

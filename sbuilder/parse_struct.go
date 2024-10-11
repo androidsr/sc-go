@@ -4,7 +4,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/androidsr/sc-go/sc"
+	"sc-go/sc"
+
 	"github.com/oleiade/reflections"
 )
 

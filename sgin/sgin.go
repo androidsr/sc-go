@@ -8,10 +8,11 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/androidsr/sc-go/model"
-	"github.com/androidsr/sc-go/scan"
-	"github.com/androidsr/sc-go/sjwt"
-	"github.com/androidsr/sc-go/syaml"
+	"sc-go/model"
+	"sc-go/scan"
+	"sc-go/sjwt"
+	"sc-go/syaml"
+
 	"github.com/gin-gonic/gin"
 	"github.com/timandy/routine"
 )

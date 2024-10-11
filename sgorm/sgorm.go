@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/androidsr/sc-go/model"
-	"github.com/androidsr/sc-go/syaml"
+	"sc-go/model"
+	"sc-go/syaml"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"

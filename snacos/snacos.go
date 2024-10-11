@@ -1,7 +1,8 @@
 package snacos
 
 import (
-	"github.com/androidsr/sc-go/syaml"
+	"sc-go/syaml"
+
 	"github.com/nacos-group/nacos-sdk-go/v2/common/constant"
 	"github.com/nacos-group/nacos-sdk-go/v2/vo"
 )

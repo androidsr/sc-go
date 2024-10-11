@@ -1,7 +1,8 @@
 package semail
 
 import (
-	"github.com/androidsr/sc-go/syaml"
+	"sc-go/syaml"
+
 	"gopkg.in/gomail.v2"
 )
 

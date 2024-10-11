@@ -7,10 +7,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/androidsr/sc-go/model"
-	"github.com/androidsr/sc-go/sc"
-	"github.com/androidsr/sc-go/shttp"
-	"github.com/androidsr/sc-go/syaml"
+	"sc-go/model"
+	"sc-go/sc"
+	"sc-go/shttp"
+	"sc-go/syaml"
+
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 )
