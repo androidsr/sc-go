@@ -134,6 +134,9 @@ func (s *WebSocketServer) SendToClient(clientID string, message []byte) {
 }
 
 func (s *WebSocketServer) HandleWebSocket(c *gin.Context) {
+	defer func(){
+		recover()
+	}()
 	id := c.Query("id") // 从请求的参数中获取用户ID
 	if id == "" {
 		c.JSON(400, gin.H{"error": "Missing user_id"})
