@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 
-	"sc-go/syaml"
+	"github.com/androidsr/sc-go/syaml"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"

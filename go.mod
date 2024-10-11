@@ -1,4 +1,4 @@
-module sc-go
+module github.com/androidsr/sc-go
 
 go 1.23.2
 
@@ -69,6 +69,7 @@ require (
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
 	github.com/kr/fs v0.1.0 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lesismal/llib v1.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

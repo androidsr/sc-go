@@ -8,10 +8,10 @@ import (
 	"log"
 	"strings"
 
-	"sc-go/model"
-	"sc-go/sbuilder"
-	"sc-go/sc"
-	"sc-go/syaml"
+	"github.com/androidsr/sc-go/model"
+	"github.com/androidsr/sc-go/sbuilder"
+	"github.com/androidsr/sc-go/sc"
+	"github.com/androidsr/sc-go/syaml"
 
 	"github.com/jmoiron/sqlx"
 )

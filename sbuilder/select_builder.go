@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"sc-go/sc"
+	"github.com/androidsr/sc-go/sc"
 
 	"github.com/opentracing/opentracing-go/log"
 )

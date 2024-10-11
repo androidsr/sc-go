@@ -5,7 +5,7 @@ import (
 	"os"
 	"sync"
 
-	"sc-go/sc"
+	"github.com/androidsr/sc-go/sc"
 
 	"github.com/kardianos/service"
 )

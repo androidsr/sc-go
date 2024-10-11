@@ -7,7 +7,7 @@ gin，sqlx，nacos，go-resty，redis，kafka，minio，yaml，snowflake，elast
 ### 安装
 
 ```yaml
-go get github.com/androidsr/sc-go
+go get "github.com/androidsr/sc-go/
 ```
 
 ### yaml集成
@@ -35,9 +35,9 @@ configs, err := syaml.Load[syaml.PaasRoot]([]byte(""))
 import (
     "fmt"
 
-    _ "github.com/androidsr/sc-go/controller"
-    "github.com/androidsr/sc-go/sgin"
-    "github.com/androidsr/sc-go/syaml"
+    _ ""github.com/androidsr/sc-go/controller"
+    ""github.com/androidsr/sc-go/sgin"
+    ""github.com/androidsr/sc-go/syaml"
     "github.com/gin-gonic/gin"
 )
 
@@ -61,7 +61,7 @@ router.RunServer()
 import (
     "fmt"
 
-    "github.com/androidsr/sc-go/sgin"
+    ""github.com/androidsr/sc-go/sgin"
     "github.com/gin-gonic/gin"
 )
 

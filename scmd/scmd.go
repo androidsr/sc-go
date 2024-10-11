@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"strings"
 
-	"sc-go/sc"
+	"github.com/androidsr/sc-go/sc"
 )
 
 var (

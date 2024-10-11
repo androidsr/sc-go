@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"sc-go/syaml"
+	"github.com/androidsr/sc-go/syaml"
 
 	"github.com/redis/go-redis/v9"
 )
