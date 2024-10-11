@@ -15,7 +15,7 @@ require (
 	github.com/minio/minio-go/v7 v7.0.77
 	github.com/nacos-group/nacos-sdk-go/v2 v2.2.7
 	github.com/oleiade/reflections v1.1.0
-	github.com/opentracing/opentracing-go v1.2.1-0.20220228012449-10b1cf09e00b
+	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/sftp v1.13.6
 	github.com/redis/go-redis/v9 v9.6.1
 	github.com/syndtr/goleveldb v1.0.0
@@ -34,7 +34,7 @@ require (
 	github.com/alibabacloud-go/debug v0.0.0-20190504072949-9472017b5c68 // indirect
 	github.com/alibabacloud-go/tea v1.1.17 // indirect
 	github.com/alibabacloud-go/tea-utils v1.4.4 // indirect
-	github.com/aliyun/alibaba-cloud-sdk-go v1.62.330 // indirect
+	github.com/aliyun/alibaba-cloud-sdk-go v1.61.1800 // indirect
 	github.com/aliyun/alibabacloud-dkms-gcs-go-sdk v0.2.2 // indirect
 	github.com/aliyun/alibabacloud-dkms-transfer-go-sdk v0.1.7 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -56,7 +56,7 @@ require (
 	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
-	github.com/golang/snappy v0.0.4 // indirect
+	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
@@ -87,7 +87,7 @@ require (
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
-	go.uber.org/atomic v1.9.0 // indirect
+	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.21.0 // indirect
 	golang.org/x/arch v0.8.0 // indirect
@@ -100,6 +100,6 @@ require (
 	google.golang.org/grpc v1.56.3 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
-	gopkg.in/ini.v1 v1.67.0 // indirect
+	gopkg.in/ini.v1 v1.66.2 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 )
