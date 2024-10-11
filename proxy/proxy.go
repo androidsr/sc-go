@@ -37,7 +37,6 @@ func New(config *syaml.ProxyInfo) {
 					if !v.Prefix {
 						req.URL.Path = "/" + strings.TrimPrefix(req.URL.Path, v.Name)
 					}
-					log.Printf("代理请求从 %s 到 %s%s", req.URL.Path, target.String(), req.URL.Path)
 				},
 			}
 			http.HandleFunc(v.Name, func(w http.ResponseWriter, r *http.Request) {
