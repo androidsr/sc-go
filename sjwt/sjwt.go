@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/androidsr/sc-go/model"
@@ -85,7 +86,7 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		url := c.Request.URL.Path
 		for _, v := range config.WhiteList {
-			if v == url {
+			if strings.Contains(url, v) {
 				c.Next()
 				return
 			}
