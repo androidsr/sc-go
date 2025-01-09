@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/androidsr/sc-go/model"
 	"github.com/androidsr/sc-go/syaml"
@@ -266,4 +267,25 @@ func Get[T any](query interface{}) *T {
 		return nil
 	}
 	return to
+}
+
+// 自定义时间类型
+type GTime struct {
+	time.Time
+}
+
+// 格式化 JSON 输出
+func (ct GTime) MarshalJSON() ([]byte, error) {
+	formatted := fmt.Sprintf("\"%s\"", ct.Time.Format("2006-01-02 15:04:05"))
+	return []byte(formatted), nil
+}
+
+// 解析 JSON 输入
+func (ct *GTime) UnmarshalJSON(b []byte) error {
+	parsedTime, err := time.Parse("2006-01-02 15:04:05", string(b))
+	if err != nil {
+		return err
+	}
+	ct.Time = parsedTime
+	return nil
 }
