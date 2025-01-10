@@ -1,7 +1,6 @@
 package sgorm
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"time"
@@ -26,8 +25,10 @@ type Sgorm struct {
 	config *syaml.GormInfo
 }
 
+// New 初始化数据库连接
 func New(config *syaml.GormInfo) *Sgorm {
 	var dialector gorm.Dialector
+	// 根据配置选择对应的数据库驱动
 	switch config.Driver {
 	case "mysql":
 		dialector = mysql.Open(config.Url)
@@ -36,10 +37,12 @@ func New(config *syaml.GormInfo) *Sgorm {
 	case "sqlite":
 		dialector = sqlite.Open(config.Url)
 	}
+	// 配置日志
 	var showLog logger.Interface
 	if config.ShowSql {
 		showLog = logger.Default.LogMode(logger.Info)
 	}
+	// 初始化数据库连接
 	db, err := gorm.Open(dialector, &gorm.Config{
 		SkipDefaultTransaction: true,
 		NamingStrategy: schema.NamingStrategy{
@@ -51,6 +54,7 @@ func New(config *syaml.GormInfo) *Sgorm {
 		log.Printf("数据库初始化失败:%s", err.Error())
 		return nil
 	}
+	// 配置数据库连接池
 	sqlDB, err := db.DB()
 	if err != nil {
 		log.Printf("数据库初始化失败:%s", err.Error())
@@ -58,122 +62,102 @@ func New(config *syaml.GormInfo) *Sgorm {
 	}
 	sqlDB.SetMaxIdleConns(config.MaxIdle)
 	sqlDB.SetMaxOpenConns(config.MaxOpen)
-	pSqlx := &Sgorm{db, config}
-	return pSqlx
+	return &Sgorm{db, config}
 }
 
-// 判断数据是否存在
+// Exists 判断记录是否存在
 func (m *Sgorm) Exists(query interface{}) bool {
-	count := m.GetCount(query)
-	return count > 0
+	return m.GetCount(query) > 0
 }
 
-// 按条件获取数据条数
+// GetCount 获取记录数
 func (m *Sgorm) GetCount(query interface{}) int64 {
 	var count int64
-	err := m.DB.Model(query).Where(query).Count(&count).Error
-	if err != nil {
-		fmt.Printf("Gorm GetCount -> Error：%v\n", err)
+	// 通过条件查询记录数
+	if err := m.DB.Model(query).Where(query).Count(&count).Error; err != nil {
+		log.Printf("GetCount Error: %v", err)
 		return 0
 	}
 	return count
 }
 
-// 数据总条数
+// SelectCount 根据SQL查询记录数
 func (m *Sgorm) SelectCount(sql string, values ...interface{}) int64 {
 	var count int64
 	sql = fmt.Sprintf("select count(*) from (%s) t", sql)
-	err := m.DB.Raw(sql, values...).Scan(&count).Error
-	if err != nil {
-		fmt.Printf("Gorm GetCount -> Error：%v\n", err)
+	// 执行SQL并获取记录数
+	if err := m.DB.Raw(sql, values...).Scan(&count).Error; err != nil {
+		log.Printf("SelectCount Error: %v", err)
 		return 0
 	}
 	return count
 }
 
-// 插入数据
+// Insert 插入数据
 func (m *Sgorm) Insert(obj interface{}) error {
-	result := m.DB.Create(obj)
-	return result.Error
+	// 创建记录
+	return m.DB.Create(obj).Error
 }
 
-// 批量插入数据
+// InsertBatch 批量插入数据
 func (m *Sgorm) InsertBatch(obj []interface{}) error {
-	result := m.DB.CreateInBatches(obj, 300)
-	return result.Error
-}
-func (m *Sgorm) Tx(fc func(tx *gorm.DB) error) error {
-	err := m.DB.Transaction(fc)
-	return err
+	// 批量创建记录
+	return m.DB.CreateInBatches(obj, 300).Error
 }
 
-// 按ID更新非空字段
+// Tx 使用事务执行操作
+func (m *Sgorm) Tx(fc func(tx *gorm.DB) error) error {
+	return m.DB.Transaction(fc)
+}
+
+// SaveOrUpdate 保存或更新记录
 func (m *Sgorm) SaveOrUpdate(obj interface{}) *gorm.DB {
 	return m.DB.Save(obj)
 }
 
-func (m *Sgorm) UpdateById(obj interface{}) *gorm.DB {
-	return m.DB.Updates(obj)
-}
-
-// 更新数据（指定条件列）
+// Update 更新记录
 func (m *Sgorm) Update(obj interface{}, query string, args ...interface{}) *gorm.DB {
 	return m.DB.Where(query, args...).Updates(obj)
 }
 
-// 删除数据
-func (m *Sgorm) Delete(obj interface{}, query interface{}, args ...interface{}) *gorm.DB {
+// Delete 删除记录，使用ID或其他条件进行删除
+func (m *Sgorm) DeleteByField(obj interface{}, query string, args ...interface{}) *gorm.DB {
 	return m.DB.Model(obj).Where(query, args...).Delete(obj)
 }
 
-// 删除数据
-func (m *Sgorm) DeleteById(obj interface{}, conds ...interface{}) error {
-	return m.DB.Model(obj).Delete(obj, conds...).Error
+// Delete 删除记录，使用ID或其他条件进行删除
+func (m *Sgorm) DeleteByObject(obj interface{}) *gorm.DB {
+	return m.DB.Model(obj).Where(obj).Delete(obj)
 }
 
-// 删除数据
-func (m *Sgorm) DeleteByIds(obj interface{}, ids ...interface{}) error {
-	return m.DB.Model(obj).Delete(obj, ids[0], ids[1:]).Error
+// SelectList 查询列表
+func (m *Sgorm) SelectList(data interface{}) error {
+	return m.DB.Where(data).Find(data).Error
 }
 
-// 查询集合
-func (m *Sgorm) SelectList(data interface{}, query interface{}) error {
-	return m.DB.Where(query).Find(data).Error
-}
-
-// 查询全部
+// SelectAll 查询所有记录
 func (m *Sgorm) SelectAll(data interface{}) error {
 	return m.DB.Find(data).Error
 }
 
-// 查询一条记录
-func (m *Sgorm) SelectOne(data interface{}, query interface{}) error {
-	return m.DB.Where(query).First(data).Error
+// SelectOne 查询单条记录
+func (m *Sgorm) SelectOne(data interface{}) error {
+	return m.DB.Where(data).First(data).Error
 }
 
-// 查询一条记录
-func (m *Sgorm) GetOne(dataAndQuery interface{}) error {
-	return m.DB.Where(dataAndQuery).First(dataAndQuery).Error
-}
-
-// 查询一条记录
-func (m *Sgorm) Get(dataAndQuery interface{}) error {
-	return m.DB.Where(dataAndQuery).First(dataAndQuery).Error
-}
-
-// 原生sql语句查询
+// SelectSQL 执行SQL查询
 func (m *Sgorm) SelectSQL(data interface{}, sql string, values ...interface{}) error {
-	err := m.DB.Raw(sql, values...).Scan(data).Error
-	return err
+	return m.DB.Raw(sql, values...).Scan(data).Error
 }
 
-// 分页查询数据
+// SelectPage 分页查询
 func (m *Sgorm) SelectPage(data interface{}, page *model.PageInfo, sql string, values ...interface{}) *model.PageResult {
 	result := new(model.PageResult)
 	if page != nil {
 		if page.Current == 0 {
 			page.Current = 1
 		}
+		// 获取总记录数
 		count := m.SelectCount(sql, values...)
 		result.Current = page.Current
 		result.Size = page.Size
@@ -182,105 +166,84 @@ func (m *Sgorm) SelectPage(data interface{}, page *model.PageInfo, sql string, v
 		}
 		result.Total = int64(count)
 		offset := (page.Current - 1) * page.Size
-		result.Current = offset
-		orderBy := bytes.Buffer{}
-		if page.Orders != nil {
-			orderBy.WriteString("order by ")
-			for i, v := range page.Orders {
-				orderBy.WriteString(fmt.Sprintf(" %s ", v.Column))
-				if v.Asc {
-					orderBy.WriteString("asc")
-				} else {
-					orderBy.WriteString("desc")
-				}
-				if i != len(page.Orders)-1 {
-					orderBy.WriteString(", ")
-				}
-			}
-		}
-		sql = fmt.Sprintf("select * from (%s) t %s LIMIT ? OFFSET ?", sql, orderBy.String())
+		sql = fmt.Sprintf("select * from (%s) t LIMIT ? OFFSET ?", sql)
 		values = append(values, page.Size, offset)
 	}
-	err := m.DB.Raw(sql, values...).Scan(data).Error
-	if err != nil {
-		log.Printf("执行SQL异常: %v\n", err)
+	// 执行分页查询
+	if err := m.DB.Raw(sql, values...).Scan(data).Error; err != nil {
+		log.Printf("SelectPage Error: %v", err)
 		return nil
 	}
 	result.Rows = data
 	return result
 }
 
-// 删除数据
-func Delete[T any](query string, args ...interface{}) *gorm.DB {
-	return DB.Model(new(T)).Where(query, args...).Delete(new(T))
-}
-
-// 删除数据
-func DeleteById[T any](id interface{}) error {
+// DeleteById 根据ID删除记录
+func DeleteById[T any](id string) error {
+	// 根据ID删除记录
 	return DB.Model(new(T)).Delete(new(T), id).Error
 }
 
-// 删除数据
+// DeleteByIds 根据多个ID删除记录
 func DeleteByIds[T any](ids []interface{}) error {
+	// 根据ID数组批量删除记录
 	return DB.Model(new(T)).Delete(new(T), ids).Error
 }
 
-// 查询集合
+// SelectList 根据条件查询记录列表
 func SelectList[T any](query interface{}) []T {
-	to := make([]T, 0)
-	err := DB.Where(query).Find(&to).Error
-	if err != nil {
-		log.Printf("Gorm SelectList -> Error：%v\n", err)
+	var result []T
+	// 查询符合条件的记录
+	if err := DB.Where(query).Find(&result).Error; err != nil {
+		log.Printf("SelectList Error: %v", err)
 		return nil
 	}
-	return to
+	return result
 }
 
-// 查询全部
+// SelectAll 查询所有记录
 func SelectAll[T any]() []T {
-	to := make([]T, 0)
-	err := DB.Find(&to).Error
-	if err != nil {
-		log.Printf("Gorm SelectList -> Error：%v\n", err)
+	var result []T
+	// 查询所有记录
+	if err := DB.Find(&result).Error; err != nil {
+		log.Printf("SelectAll Error: %v", err)
 		return nil
 	}
-	return to
+	return result
 }
 
-// 查询一条记录
-func SelectOne[T any](data interface{}, query interface{}) *T {
-	to := new(T)
-	err := DB.Where(query).First(to).Error
-	if err != nil {
-		log.Printf("Gorm SelectList -> Error：%v\n", err)
+// SelectOne 根据条件查询单条记录
+func SelectOne[T any](data interface{}) *T {
+	var result T
+	// 查询单条记录
+	if err := DB.Where(data).First(&result).Error; err != nil {
+		log.Printf("SelectOne Error: %v", err)
 		return nil
 	}
-	return to
+	return &result
 }
 
-// 查询一条记录
-func Get[T any](query interface{}) *T {
-	to := new(T)
-	err := DB.Where(query).First(to).Error
-	if err != nil {
-		log.Printf("Gorm SelectList -> Error：%v\n", err)
+// Get 根据条件查询记录，返回单个对象
+func Get[T any](data interface{}) *T {
+	var result T
+	// 查询单条记录
+	if err := DB.Where(data).First(&result).Error; err != nil {
+		log.Printf("Get Error: %v", err)
 		return nil
 	}
-	return to
+	return &result
 }
 
-// 自定义时间类型
 type GTime struct {
 	time.Time
 }
 
-// 格式化 JSON 输出
+// MarshalJSON 自定义时间序列化方法
 func (ct GTime) MarshalJSON() ([]byte, error) {
-	formatted := fmt.Sprintf("\"%s\"", ct.Time.Format("2006-01-02 15:04:05"))
-	return []byte(formatted), nil
+	return []byte(fmt.Sprintf("\"%s\"", ct.Time.Format("2006-01-02 15:04:05"))), nil
 }
 
-// 解析 JSON 输入
+// UnmarshalJSON 自定义时间反序列化方法
 func (ct *GTime) UnmarshalJSON(b []byte) error {
 	parsedTime, err := time.Parse("2006-01-02 15:04:05", string(b))
 	if err != nil {
