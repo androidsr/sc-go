@@ -41,7 +41,8 @@ func Initdb(config *syaml.GormInfo) *gorm.DB {
 		showLog = logger.Default.LogMode(logger.Info)
 	}
 	// 初始化数据库连接
-	db, err := gorm.Open(dialector, &gorm.Config{
+	var err error
+	db, err = gorm.Open(dialector, &gorm.Config{
 		SkipDefaultTransaction: true,
 		NamingStrategy: schema.NamingStrategy{
 			SingularTable: true,
