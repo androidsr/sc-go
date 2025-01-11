@@ -127,11 +127,6 @@ func (m *Mapper[T]) Update(value *T, query string, args ...interface{}) *gorm.DB
 	return m.DB.Where(query, args...).Updates(value)
 }
 
-// Delete 删除记录，使用ID或其他条件进行删除
-func (m *Mapper[T]) DeleteById(ids ...interface{}) *gorm.DB {
-	return m.DB.Model(new(T)).Delete(new(T), ids)
-}
-
 // Delete 删除记录，使用其他条件进行删除
 func (m *Mapper[T]) Delete(query string, values ...interface{}) *gorm.DB {
 	return m.DB.Model(new(T)).Where(query, values...).Delete(new(T))
