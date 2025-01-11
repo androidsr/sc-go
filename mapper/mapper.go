@@ -187,13 +187,12 @@ func (m *Mapper[T]) SelectAll() ([]T, error) {
 }
 
 // SelectOne 查询单条记录
-func (m *Mapper[T]) SelectOne(data *T) (*T, error) {
-	result := new(T)
-	err := m.DB.Where(data).First(result).Error
+func (m *Mapper[T]) SelectOne(data *T) error {
+	err := m.DB.Where(data).First(data).Error
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return result, nil
+	return nil
 }
 
 // SelectSQL 执行SQL查询
@@ -202,7 +201,7 @@ func (m *Mapper[T]) SelectSQL(data interface{}, sql string, values ...interface{
 }
 
 // SelectPage 分页查询
-func (m *Mapper[T]) SelectPage(data []interface{}, page *model.PageInfo, sql string, values ...interface{}) *model.PageResult {
+func (m *Mapper[T]) SelectPage(data interface{}, page *model.PageInfo, sql string, values ...interface{}) *model.PageResult {
 	result := new(model.PageResult)
 	if page != nil {
 		if page.Current == 0 {
