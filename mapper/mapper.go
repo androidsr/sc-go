@@ -72,12 +72,12 @@ func NewTransaction[T any](db *gorm.DB) *Mapper[T] {
 }
 
 // Exists 判断记录是否存在
-func (m *Mapper[T]) Exists(query T) bool {
+func (m *Mapper[T]) Exists(query *T) bool {
 	return m.GetCount(query) > 0
 }
 
 // GetCount 获取记录数
-func (m *Mapper[T]) GetCount(query T) int64 {
+func (m *Mapper[T]) GetCount(query *T) int64 {
 	var count int64
 	// 通过条件查询记录数
 	if err := m.DB.Model(query).Where(query).Count(&count).Error; err != nil {
@@ -100,13 +100,13 @@ func (m *Mapper[T]) SelectCount(sql string, values ...interface{}) int64 {
 }
 
 // Insert 插入数据
-func (m *Mapper[T]) Insert(value T) error {
+func (m *Mapper[T]) Insert(value *T) error {
 	// 创建记录
 	return m.DB.Create(value).Error
 }
 
 // InsertBatch 批量插入数据
-func (m *Mapper[T]) InsertBatch(values []T) error {
+func (m *Mapper[T]) InsertBatch(values *[]T) error {
 	// 批量创建记录
 	return m.DB.CreateInBatches(values, 300).Error
 }
@@ -117,18 +117,18 @@ func (m *Mapper[T]) Tx(fc func(tx *gorm.DB) error) error {
 }
 
 // SaveOrUpdate 保存或更新记录
-func (m *Mapper[T]) SaveOrUpdate(obj interface{}) *gorm.DB {
-	return m.DB.Save(obj)
+func (m *Mapper[T]) SaveOrUpdate(value *T) *gorm.DB {
+	return m.DB.Save(value)
 }
 
 // Update 更新记录
-func (m *Mapper[T]) Update(obj interface{}, query string, args ...interface{}) *gorm.DB {
-	return m.DB.Where(query, args...).Updates(obj)
+func (m *Mapper[T]) Update(value *T, query string, args ...interface{}) *gorm.DB {
+	return m.DB.Where(query, args...).Updates(value)
 }
 
 // Delete 删除记录，使用ID或其他条件进行删除
-func (m *Mapper[T]) DeleteById(values ...interface{}) *gorm.DB {
-	return m.DB.Model(new(T)).Delete(new(T), values)
+func (m *Mapper[T]) DeleteById(ids ...interface{}) *gorm.DB {
+	return m.DB.Model(new(T)).Delete(new(T), ids)
 }
 
 // Delete 删除记录，使用其他条件进行删除
@@ -137,12 +137,12 @@ func (m *Mapper[T]) Delete(query string, values ...interface{}) *gorm.DB {
 }
 
 // Delete 删除记录，使用ID或其他条件进行删除
-func (m *Mapper[T]) Delete2(obj T) *gorm.DB {
+func (m *Mapper[T]) Delete2(obj *T) *gorm.DB {
 	return m.DB.Model(new(T)).Where(obj).Delete(new(T))
 }
 
 // SelectList 查询列表
-func (m *Mapper[T]) SelectList(query T) ([]T, error) {
+func (m *Mapper[T]) SelectList(query *T) ([]T, error) {
 	result := make([]T, 0)
 	err := m.DB.Model(new(T)).Where(query).Find(&result).Error
 	if err != nil {
@@ -160,14 +160,40 @@ func (m *Mapper[T]) SelectList2(query string, values ...interface{}) ([]T, error
 	return result, nil
 }
 
+func (m *Mapper[T]) SelectList3(result interface{}, query string, values ...interface{}) error {
+	err := m.DB.Model(new(T)).Where(query).Find(&result).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *Mapper[T]) SelectList4(result interface{}, query *T) error {
+	err := m.DB.Model(new(T)).Where(query).Find(&result).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // SelectAll 查询所有记录
-func (m *Mapper[T]) SelectAll(data []T) error {
-	return m.DB.Find(data).Error
+func (m *Mapper[T]) SelectAll() ([]T, error) {
+	data := make([]T, 0)
+	err := m.DB.Find(&data).Error
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
 }
 
 // SelectOne 查询单条记录
-func (m *Mapper[T]) SelectOne(data T) error {
-	return m.DB.Where(data).First(data).Error
+func (m *Mapper[T]) SelectOne(data *T) (*T, error) {
+	result := new(T)
+	err := m.DB.Where(data).First(result).Error
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 // SelectSQL 执行SQL查询
@@ -176,7 +202,7 @@ func (m *Mapper[T]) SelectSQL(data interface{}, sql string, values ...interface{
 }
 
 // SelectPage 分页查询
-func (m *Mapper[T]) SelectPage(data []T, page *model.PageInfo, sql string, values ...interface{}) *model.PageResult {
+func (m *Mapper[T]) SelectPage(data []interface{}, page *model.PageInfo, sql string, values ...interface{}) *model.PageResult {
 	result := new(model.PageResult)
 	if page != nil {
 		if page.Current == 0 {
