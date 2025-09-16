@@ -2,7 +2,7 @@ package wsocket
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"net/http"
 	"sync"
 	"time"
@@ -12,81 +12,65 @@ import (
 	"github.com/lesismal/nbio/nbhttp/websocket"
 )
 
+var (
+	WsServer *WebSocketServer
+)
+
 type Session struct {
 	Id string `json:"id"`
 }
 
 type Client struct {
-	mu    sync.Mutex
-	Conn  *websocket.Conn
-	ID    string
-	Alive bool
+	mu       sync.Mutex
+	Conn     *websocket.Conn
+	ID       string
+	LastPong time.Time // 记录最近一次收到 pong 的时间
 }
 
 type WebSocketServer struct {
-	clients   map[string]*Client
-	clientsMu sync.RWMutex
-
-	upgrader *websocket.Upgrader
-	engine   *nbhttp.Engine
-	r        *gin.Engine
-
-	// 用于优雅停止心跳
-	cancel context.CancelFunc
-
-	// 用户的消息处理函数（由 OnMessage 设置）
-	msgHandler   func(conn *websocket.Conn, messageType websocket.MessageType, data []byte)
-	msgHandlerMu sync.RWMutex
+	clients       map[string]*Client
+	clientsMu     sync.RWMutex
+	upgrader      *websocket.Upgrader
+	engine        *nbhttp.Engine
+	r             *gin.Engine
+	checkInterval time.Duration
+	maxIdle       time.Duration
 }
 
-// NewServer 初始化 server：绑定 OnClose 与 内部 OnMessage wrapper（负责刷新 Alive 并转发到用户 handler）
-func NewServer(r *gin.Engine) *WebSocketServer {
+func NewServer(r *gin.Engine, checkInterval, maxIdle time.Duration) *WebSocketServer {
 	s := &WebSocketServer{
-		clients:  make(map[string]*Client),
-		upgrader: websocket.NewUpgrader(),
-		r:        r,
+		clients:       make(map[string]*Client),
+		upgrader:      websocket.NewUpgrader(),
+		r:             r,
+		checkInterval: checkInterval,
+		maxIdle:       maxIdle,
 	}
+	WsServer = s
 
-	// 允许跨域（按需修改）
+	// 允许跨域
 	s.upgrader.CheckOrigin = func(r *http.Request) bool { return true }
-
-	// 关闭事件：在连接真正对应 map 中的 client 时才删除
+	// 连接关闭时回调
 	s.upgrader.OnClose(s.handleClose)
-
-	// 内部 OnMessage wrapper：用于刷新 Alive，并把消息转发给用户 handler（如果有）
+	// 消息处理：处理 pong
 	s.upgrader.OnMessage(func(conn *websocket.Conn, mt websocket.MessageType, data []byte) {
-		// 刷新对应 client 的 Alive
-		if sess, ok := conn.Session().(*Session); ok {
-			s.clientsMu.RLock()
-			if cli, exists := s.clients[sess.Id]; exists {
-				cli.mu.Lock()
-				cli.Alive = true
-				cli.mu.Unlock()
+		if string(data) == "pong" {
+			if sess, ok := conn.Session().(*Session); ok {
+				s.clientsMu.RLock()
+				if cli, exists := s.clients[sess.Id]; exists {
+					cli.mu.Lock()
+					cli.LastPong = time.Now()
+					cli.mu.Unlock()
+				}
+				s.clientsMu.RUnlock()
 			}
-			s.clientsMu.RUnlock()
+			return
 		}
-		// 转发到用户 handler（线程安全读）
-		s.msgHandlerMu.RLock()
-		h := s.msgHandler
-		s.msgHandlerMu.RUnlock()
-		if h != nil {
-			h(conn, mt, data)
-		}
+		// 这里可以加其他业务消息处理
 	})
 
 	return s
 }
 
-// OnMessage: 用户注册消息处理器（会被内部 wrapper 调用）
-func (s *WebSocketServer) OnMessage(
-	handleMessage func(conn *websocket.Conn, messageType websocket.MessageType, data []byte),
-) {
-	s.msgHandlerMu.Lock()
-	s.msgHandler = handleMessage
-	s.msgHandlerMu.Unlock()
-}
-
-// Start: 启动 nbio 引擎并启动心跳 goroutine
 func (s *WebSocketServer) Start(addr string, maxLoad int) error {
 	s.r.GET("/ws", s.HandleWebSocket)
 
@@ -99,11 +83,17 @@ func (s *WebSocketServer) Start(addr string, maxLoad int) error {
 	})
 	s.engine = engine
 
-	ctx, cancel := context.WithCancel(context.Background())
-	s.cancel = cancel
-	go s.heartbeat(ctx)
+	go s.heartbeatCheck()
 
 	return engine.Start()
+}
+
+func (s *WebSocketServer) Close() {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	if s.engine != nil {
+		_ = s.engine.Shutdown(ctx)
+	}
 }
 
 func (s *WebSocketServer) GetSize() int {
@@ -112,158 +102,84 @@ func (s *WebSocketServer) GetSize() int {
 	return len(s.clients)
 }
 
-// Close: 优雅关闭（停止心跳、关闭所有连接、shutdown engine）
-func (s *WebSocketServer) Close() {
-	if s.cancel != nil {
-		s.cancel()
-	}
-	s.clientsMu.Lock()
-	for _, c := range s.clients {
-		_ = c.Conn.Close()
-	}
-	s.clients = make(map[string]*Client)
-	s.clientsMu.Unlock()
-
-	if s.engine != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
-		_ = s.engine.Shutdown(ctx)
-	}
-}
-
-// handleClose: nbio 在连接关闭时会回调。仅在 map 中该 id 的连接仍然指向这个 conn 时才删除（防止误删新连接）
 func (s *WebSocketServer) handleClose(conn *websocket.Conn, err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Printf("handleClose panic: %v", r)
-		}
-	}()
-
 	if sess, ok := conn.Session().(*Session); ok {
 		s.clientsMu.Lock()
-		if client, exists := s.clients[sess.Id]; exists {
-			// 只有当 map 中的 client 正是这个 conn 时才删
-			client.mu.Lock()
-			if client.Conn == conn {
-				delete(s.clients, sess.Id)
-				client.mu.Unlock()
-				s.clientsMu.Unlock()
-				log.Printf("client %s disconnected (handleClose)", sess.Id)
-				return
-			}
-			client.mu.Unlock()
+		if client, exists := s.clients[sess.Id]; exists && client.Conn == conn {
+			delete(s.clients, sess.Id)
+			fmt.Printf("客户端[%s]已关闭连接\n", sess.Id)
 		}
 		s.clientsMu.Unlock()
 	}
 }
 
-// heartbeat: 不依赖 OnPong；策略：如果 client.Alive 为 false（上轮未被刷新），则移除；否则将 Alive 置 false 并发送 Ping，写失败也移除
-func (s *WebSocketServer) heartbeat(ctx context.Context) {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Printf("heartbeat panic: %v", r)
-		}
-	}()
-	ticker := time.NewTicker(30 * time.Second)
+func (s *WebSocketServer) heartbeatCheck() {
+	ticker := time.NewTicker(s.checkInterval)
 	defer ticker.Stop()
 
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-ticker.C:
-			var toRemove []string
-
-			s.clientsMu.RLock()
-			for id, c := range s.clients {
-				c.mu.Lock()
-				if !c.Alive {
-					// 上一轮没有被刷新，标记为待移除
-					toRemove = append(toRemove, id)
-					c.mu.Unlock()
-					continue
-				}
-				// 先把 Alive 置为 false，等待下一轮有消息来刷新
-				c.Alive = false
-				// 发送 ping 检测写是否正常（若写失败，也加入待移除）
-				if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
-					toRemove = append(toRemove, id)
-				}
-				c.mu.Unlock()
-			}
-			s.clientsMu.RUnlock()
-
-			if len(toRemove) > 0 {
+	for range ticker.C {
+		s.clientsMu.RLock()
+		for id, cli := range s.clients {
+			cli.mu.Lock()
+			if time.Since(cli.LastPong) > s.maxIdle {
+				// 超过最大空闲时间，关闭连接
+				cli.Conn.Close()
+				cli.mu.Unlock()
+				s.clientsMu.RUnlock()
 				s.clientsMu.Lock()
-				for _, id := range toRemove {
-					if cli, ok := s.clients[id]; ok {
-						_ = cli.Conn.Close()
-						delete(s.clients, id)
-						log.Printf("removed inactive client %s", id)
-					}
-				}
+				delete(s.clients, id)
 				s.clientsMu.Unlock()
+				s.clientsMu.RLock()
+				fmt.Printf("客户端[%s]心跳超时，已断开\n", id)
+			} else {
+				// 发送 ping
+				_ = cli.Conn.WriteMessage(websocket.TextMessage, []byte("ping"))
+				cli.mu.Unlock()
 			}
 		}
+		s.clientsMu.RUnlock()
 	}
 }
 
-// SendToClient: 发送消息给指定 id（线程安全）
-func (s *WebSocketServer) SendToClient(id string, msg []byte) {
+func (s *WebSocketServer) SendToClient(clientID string, message []byte) {
 	s.clientsMu.RLock()
-	c, ok := s.clients[id]
+	client, ok := s.clients[clientID]
 	s.clientsMu.RUnlock()
 	if !ok {
-		log.Printf("client %s not found", id)
+		fmt.Printf("未找到指定的客户端: %s\n", clientID)
 		return
 	}
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	_ = c.Conn.WriteMessage(websocket.TextMessage, msg)
+	client.mu.Lock()
+	defer client.mu.Unlock()
+	_ = client.Conn.WriteMessage(websocket.TextMessage, message)
 }
 
-// HandleWebSocket: 升级为 websocket，并**安全替换**同 id 的旧连接（先替换 map，再在 map 锁释放后关闭旧连接）
 func (s *WebSocketServer) HandleWebSocket(c *gin.Context) {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Printf("HandleWebSocket panic: %v", r)
-		}
-	}()
-
 	id := c.Query("id")
 	if id == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing id"})
+		c.JSON(400, gin.H{"error": "Missing id"})
 		return
 	}
 	conn, err := s.upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
-		log.Printf("upgrade error: %v", err)
+		c.String(500, err.Error())
 		return
 	}
 	conn.SetSession(&Session{Id: id})
 
-	newClient := &Client{
-		Conn:  conn,
-		ID:    id,
-		Alive: true,
+	client := &Client{
+		Conn:     conn,
+		ID:       id,
+		LastPong: time.Now(), // 初始为当前时间
 	}
 
-	// 注意：不要在持有 clientsMu 的时候调用 old.Conn.Close()（可能导致与 handleClose 的锁争用死锁）
-	var oldConn *websocket.Conn
 	s.clientsMu.Lock()
+	// 如果已有旧连接，先关闭它
 	if old, ok := s.clients[id]; ok {
-		oldConn = old.Conn
+		old.Conn.Close()
 	}
-	s.clients[id] = newClient
+	s.clients[id] = client
 	s.clientsMu.Unlock()
 
-	// 在锁外关闭旧连接（如果有）
-	if oldConn != nil {
-		go func(cn *websocket.Conn, id string) {
-			_ = cn.Close()
-			log.Printf("old connection for %s closed due to reconnect", id)
-		}(oldConn, id)
-	}
-
-	log.Printf("client %s connected", id)
+	fmt.Printf("客户端[%s]连接成功\n", id)
 }
